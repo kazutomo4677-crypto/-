@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>商品詳細 | 祭彩 -MATSURI SAI-</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/product.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&family=Shippori+Mincho:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- Confetti -->
+  <div class="confetti-container" id="confetti-container"></div>
+
+  <!-- Header -->
+  <header class="header scrolled" id="header">
+    <div class="header-inner">
+      <a href="index.html" class="logo">
+        <span class="logo-icon">&#x2728;</span>
+        <span class="logo-text">祭彩</span>
+        <span class="logo-sub">MATSURI SAI</span>
+      </a>
+      <nav class="nav" id="nav">
+        <a href="index.html#hero" class="nav-link">ホーム</a>
+        <a href="index.html#about" class="nav-link">コンセプト</a>
+        <a href="index.html#products" class="nav-link active">コレクション</a>
+        <a href="index.html#featured" class="nav-link">特集</a>
+        <a href="index.html#contact" class="nav-link">お問い合わせ</a>
+      </nav>
+      <div class="header-actions">
+        <button class="icon-btn cart-btn" id="cart-btn" aria-label="カート">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+          <span class="cart-count" id="cart-count">0</span>
+        </button>
+        <button class="hamburger" id="hamburger" aria-label="メニュー">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Breadcrumb -->
+  <div class="breadcrumb">
+    <div class="container">
+      <a href="index.html">ホーム</a>
+      <span>/</span>
+      <a href="index.html#products">コレクション</a>
+      <span>/</span>
+      <span id="breadcrumb-name">商品名</span>
+    </div>
+  </div>
+
+  <!-- Product Detail -->
+  <section class="product-detail">
+    <div class="container">
+      <div class="product-detail-grid">
+        <div class="product-gallery">
+          <div class="product-main-img" id="product-main-img">
+            <!-- Gradient visual -->
+          </div>
+          <div class="product-thumbs" id="product-thumbs">
+            <!-- Thumbnail variations -->
+          </div>
+        </div>
+        <div class="product-info">
+          <span class="product-category-label" id="product-category"></span>
+          <h1 class="product-title" id="product-title">商品名</h1>
+          <div class="product-price-block">
+            <span class="product-price" id="product-price">¥0</span>
+            <span class="product-original-price" id="product-original-price"></span>
+          </div>
+          <p class="product-description" id="product-description">説明文</p>
+
+          <div class="product-options">
+            <div class="option-group">
+              <label>数量</label>
+              <div class="qty-selector">
+                <button class="qty-btn" id="qty-minus">−</button>
+                <span id="qty-value">1</span>
+                <button class="qty-btn" id="qty-plus">+</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="product-actions">
+            <button class="btn btn-primary btn-full" id="add-to-cart-btn">カートに追加</button>
+          </div>
+
+          <div class="product-features">
+            <div class="feature-item">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+              <span>全国送料無料</span>
+            </div>
+            <div class="feature-item">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              <span>安心の品質保証</span>
+            </div>
+            <div class="feature-item">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
+              <span>ギフトラッピング対応</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Related Products -->
+  <section class="related-products">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">Related</span>
+        <h2 class="section-title">関連アイテム</h2>
+      </div>
+      <div class="products-grid" id="related-grid">
+        <!-- Injected by JS -->
+      </div>
+    </div>
+  </section>
+
+  <!-- Cart Sidebar (same as index) -->
+  <div class="cart-overlay" id="cart-overlay"></div>
+  <aside class="cart-sidebar" id="cart-sidebar">
+    <div class="cart-header">
+      <h3>ショッピングカート</h3>
+      <button class="cart-close" id="cart-close">&times;</button>
+    </div>
+    <div class="cart-items" id="cart-items">
+      <div class="cart-empty" id="cart-empty">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+        <p>カートは空です</p>
+      </div>
+    </div>
+    <div class="cart-footer" id="cart-footer" style="display:none;">
+      <div class="cart-total">
+        <span>合計</span>
+        <span id="cart-total-price">¥0</span>
+      </div>
+      <button class="btn btn-primary btn-full">レジに進む</button>
+    </div>
+  </aside>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <a href="index.html" class="logo">
+            <span class="logo-icon">&#x2728;</span>
+            <span class="logo-text">祭彩</span>
+          </a>
+          <p>色彩が踊り出す、祭りのようなアートの世界。</p>
+        </div>
+        <div class="footer-links">
+          <h4>ショップ</h4>
+          <a href="#">新着アイテム</a>
+          <a href="#">人気ランキング</a>
+          <a href="#">セール</a>
+          <a href="#">ギフト</a>
+        </div>
+        <div class="footer-links">
+          <h4>サポート</h4>
+          <a href="#">配送について</a>
+          <a href="#">返品・交換</a>
+          <a href="#">よくある質問</a>
+          <a href="#">プライバシーポリシー</a>
+        </div>
+        <div class="footer-links">
+          <h4>アーティスト</h4>
+          <a href="#">プロフィール</a>
+          <a href="#">制作プロセス</a>
+          <a href="#">コミッション</a>
+          <a href="#">コラボレーション</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>&copy; 2026 祭彩 -MATSURI SAI- All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/app.js"></script>
+  <script src="js/product.js"></script>
+</body>
+</html>

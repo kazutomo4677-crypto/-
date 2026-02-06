@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>祭彩 -MATSURI SAI- | ポートフォリオ EC サイト</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&family=Shippori+Mincho:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- Confetti particles -->
+  <div class="confetti-container" id="confetti-container"></div>
+
+  <!-- Header / Navigation -->
+  <header class="header" id="header">
+    <div class="header-inner">
+      <a href="index.html" class="logo">
+        <span class="logo-icon">&#x2728;</span>
+        <span class="logo-text">祭彩</span>
+        <span class="logo-sub">MATSURI SAI</span>
+      </a>
+      <nav class="nav" id="nav">
+        <a href="#hero" class="nav-link active">ホーム</a>
+        <a href="#about" class="nav-link">コンセプト</a>
+        <a href="#products" class="nav-link">コレクション</a>
+        <a href="#featured" class="nav-link">特集</a>
+        <a href="#contact" class="nav-link">お問い合わせ</a>
+      </nav>
+      <div class="header-actions">
+        <button class="icon-btn search-btn" id="search-btn" aria-label="検索">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        </button>
+        <button class="icon-btn cart-btn" id="cart-btn" aria-label="カート">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+          <span class="cart-count" id="cart-count">0</span>
+        </button>
+        <button class="hamburger" id="hamburger" aria-label="メニュー">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Search Modal -->
+  <div class="search-modal" id="search-modal">
+    <div class="search-modal-inner">
+      <input type="text" class="search-input" id="search-input" placeholder="アイテムを検索...">
+      <button class="search-close" id="search-close">&times;</button>
+    </div>
+    <div class="search-results" id="search-results"></div>
+  </div>
+
+  <!-- Hero Section -->
+  <section class="hero" id="hero">
+    <div class="hero-bg">
+      <div class="hero-gradient"></div>
+      <div class="hero-pattern"></div>
+    </div>
+    <div class="hero-content">
+      <p class="hero-tag">&#127881; 2026 Spring Collection</p>
+      <h1 class="hero-title">
+        <span class="hero-title-line">色彩が</span>
+        <span class="hero-title-line accent">踊り出す</span>
+      </h1>
+      <p class="hero-desc">
+        祭りの華やかさと現代のクリエイティビティが融合した<br>
+        唯一無二のアートコレクション
+      </p>
+      <div class="hero-actions">
+        <a href="#products" class="btn btn-primary">コレクションを見る</a>
+        <a href="#about" class="btn btn-outline">コンセプトを知る</a>
+      </div>
+    </div>
+    <div class="hero-scroll">
+      <span>Scroll</span>
+      <div class="hero-scroll-line"></div>
+    </div>
+  </section>
+
+  <!-- About / Concept -->
+  <section class="about" id="about">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">Concept</span>
+        <h2 class="section-title">祭彩のコンセプト</h2>
+      </div>
+      <div class="about-grid">
+        <div class="about-card" data-aos="fade-up">
+          <div class="about-card-icon" style="background: linear-gradient(135deg, #e8443a, #ff6b6b);">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+          </div>
+          <h3>色彩の爆発</h3>
+          <p>祭りのコンフェッティのように、大胆で鮮やかな色彩が交差するアートワーク。一つひとつが唯一無二の輝きを放ちます。</p>
+        </div>
+        <div class="about-card" data-aos="fade-up" data-aos-delay="100">
+          <div class="about-card-icon" style="background: linear-gradient(135deg, #d4a017, #f5d76e);">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </div>
+          <h3>伝統と革新</h3>
+          <p>和の伝統美と現代デジタルアートの融合。着物の文様からインスパイアされたデザインが新しい表現を生み出します。</p>
+        </div>
+        <div class="about-card" data-aos="fade-up" data-aos-delay="200">
+          <div class="about-card-icon" style="background: linear-gradient(135deg, #0d9488, #5eead4);">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          </div>
+          <h3>エネルギーの解放</h3>
+          <p>祭りの高揚感をそのままアートに。躍動感あふれる構図と色使いで、見る人にエネルギーを届けます。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Category Filter -->
+  <section class="products" id="products">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">Collection</span>
+        <h2 class="section-title">コレクション</h2>
+      </div>
+      <div class="filter-bar">
+        <button class="filter-btn active" data-category="all">すべて</button>
+        <button class="filter-btn" data-category="illustration">イラスト</button>
+        <button class="filter-btn" data-category="apparel">アパレル</button>
+        <button class="filter-btn" data-category="accessory">アクセサリー</button>
+        <button class="filter-btn" data-category="print">プリント</button>
+      </div>
+      <div class="products-grid" id="products-grid">
+        <!-- Products injected by JS -->
+      </div>
+    </div>
+  </section>
+
+  <!-- Featured / Pickup -->
+  <section class="featured" id="featured">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">Featured</span>
+        <h2 class="section-title">今月のピックアップ</h2>
+      </div>
+      <div class="featured-banner">
+        <div class="featured-banner-content">
+          <span class="featured-label">Limited Edition</span>
+          <h3 class="featured-title">祝彩 -SHUKUSAI- コレクション</h3>
+          <p class="featured-desc">
+            春の祭りをテーマにした限定コレクション。<br>
+            華やかな色彩と繊細なディテールが調和する特別なアイテム。
+          </p>
+          <a href="product.html" class="btn btn-primary">詳細を見る</a>
+        </div>
+        <div class="featured-banner-visual">
+          <div class="featured-orb orb-1"></div>
+          <div class="featured-orb orb-2"></div>
+          <div class="featured-orb orb-3"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Testimonials / Reviews -->
+  <section class="reviews" id="reviews">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">Reviews</span>
+        <h2 class="section-title">お客様の声</h2>
+      </div>
+      <div class="reviews-slider" id="reviews-slider">
+        <div class="review-card">
+          <div class="review-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+          <p class="review-text">「色使いが本当に素晴らしい！部屋に飾ると一気に華やかになりました。アートの力を感じます。」</p>
+          <div class="review-author">
+            <div class="review-avatar" style="background: linear-gradient(135deg, #e8443a, #d4a017);">S</div>
+            <div>
+              <p class="review-name">Sakura M.</p>
+              <p class="review-item">祝彩キャンバスプリント A2</p>
+            </div>
+          </div>
+        </div>
+        <div class="review-card">
+          <div class="review-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+          <p class="review-text">「アパレルのクオリティが高く、デザインも唯一無二。着るたびにテンションが上がります！」</p>
+          <div class="review-author">
+            <div class="review-avatar" style="background: linear-gradient(135deg, #0d9488, #5eead4);">K</div>
+            <div>
+              <p class="review-name">Kenji T.</p>
+              <p class="review-item">祭彩オーバーサイズTシャツ</p>
+            </div>
+          </div>
+        </div>
+        <div class="review-card">
+          <div class="review-stars">&#9733;&#9733;&#9733;&#9733;&#9734;</div>
+          <p class="review-text">「ギフトとして購入しました。パッケージも美しく、相手にとても喜ばれました。リピート確定です。」</p>
+          <div class="review-author">
+            <div class="review-avatar" style="background: linear-gradient(135deg, #d4a017, #f5d76e);">A</div>
+            <div>
+              <p class="review-name">Aoi Y.</p>
+              <p class="review-item">花吹雪アクリルスタンド</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Newsletter -->
+  <section class="newsletter" id="newsletter">
+    <div class="container">
+      <div class="newsletter-inner">
+        <h2 class="newsletter-title">最新情報をお届け</h2>
+        <p class="newsletter-desc">新作リリースや限定セール情報をいち早くお届けします</p>
+        <form class="newsletter-form" id="newsletter-form">
+          <input type="email" class="newsletter-input" placeholder="メールアドレス" required>
+          <button type="submit" class="btn btn-primary">登録する</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact -->
+  <section class="contact" id="contact">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">Contact</span>
+        <h2 class="section-title">お問い合わせ</h2>
+      </div>
+      <div class="contact-grid">
+        <div class="contact-info">
+          <h3>お気軽にご連絡ください</h3>
+          <p>商品に関するご質問、コラボレーションのご相談など、お気軽にどうぞ。</p>
+          <div class="contact-details">
+            <div class="contact-item">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+              <span>contact@matsuri-sai.example.com</span>
+            </div>
+            <div class="contact-item">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              <span>東京都渋谷区（オンラインショップ）</span>
+            </div>
+          </div>
+          <div class="social-links">
+            <a href="#" class="social-link" aria-label="Twitter">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+            </a>
+            <a href="#" class="social-link" aria-label="Instagram">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+            </a>
+            <a href="#" class="social-link" aria-label="Pixiv">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M4.935 0A4.924 4.924 0 0 0 0 4.935v14.13A4.924 4.924 0 0 0 4.935 24h14.13A4.924 4.924 0 0 0 24 19.065V4.935A4.924 4.924 0 0 0 19.065 0zm7.81 4.547c2.181 0 4.058.676 5.399 1.847a6.118 6.118 0 0 1 2.116 4.66c.005 1.854-.88 3.476-2.257 4.563-1.375 1.1-3.215 1.545-5.258 1.545-2.043 0-3.883-.445-5.258-1.545C6.11 14.517 5.225 12.895 5.23 11.04a6.118 6.118 0 0 1 2.116-4.66C8.687 5.223 10.564 4.547 12.745 4.547z"/></svg>
+            </a>
+          </div>
+        </div>
+        <form class="contact-form" id="contact-form">
+          <div class="form-group">
+            <label for="name">お名前</label>
+            <input type="text" id="name" required>
+          </div>
+          <div class="form-group">
+            <label for="email">メールアドレス</label>
+            <input type="email" id="email" required>
+          </div>
+          <div class="form-group">
+            <label for="subject">件名</label>
+            <select id="subject">
+              <option value="general">一般的なお問い合わせ</option>
+              <option value="order">ご注文について</option>
+              <option value="collab">コラボレーション</option>
+              <option value="other">その他</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="message">メッセージ</label>
+            <textarea id="message" rows="5" required></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary btn-full">送信する</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- Cart Sidebar -->
+  <div class="cart-overlay" id="cart-overlay"></div>
+  <aside class="cart-sidebar" id="cart-sidebar">
+    <div class="cart-header">
+      <h3>ショッピングカート</h3>
+      <button class="cart-close" id="cart-close">&times;</button>
+    </div>
+    <div class="cart-items" id="cart-items">
+      <div class="cart-empty" id="cart-empty">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+        <p>カートは空です</p>
+      </div>
+    </div>
+    <div class="cart-footer" id="cart-footer" style="display:none;">
+      <div class="cart-total">
+        <span>合計</span>
+        <span id="cart-total-price">&yen;0</span>
+      </div>
+      <button class="btn btn-primary btn-full">レジに進む</button>
+    </div>
+  </aside>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <a href="index.html" class="logo">
+            <span class="logo-icon">&#x2728;</span>
+            <span class="logo-text">祭彩</span>
+          </a>
+          <p>色彩が踊り出す、祭りのようなアートの世界。</p>
+        </div>
+        <div class="footer-links">
+          <h4>ショップ</h4>
+          <a href="#">新着アイテム</a>
+          <a href="#">人気ランキング</a>
+          <a href="#">セール</a>
+          <a href="#">ギフト</a>
+        </div>
+        <div class="footer-links">
+          <h4>サポート</h4>
+          <a href="#">配送について</a>
+          <a href="#">返品・交換</a>
+          <a href="#">よくある質問</a>
+          <a href="#">プライバシーポリシー</a>
+        </div>
+        <div class="footer-links">
+          <h4>アーティスト</h4>
+          <a href="#">プロフィール</a>
+          <a href="#">制作プロセス</a>
+          <a href="#">コミッション</a>
+          <a href="#">コラボレーション</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>&copy; 2026 祭彩 -MATSURI SAI- All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
