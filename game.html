@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>祭彩浪漫 -MATSURI SAI ROMAN- | 東雲 燿 編</title>
+  <meta name="description" content="大正十二年、神田。画材店「祭彩堂」を継いだ娘と、落選つづきの洋画家・東雲燿の物語。">
+  <link rel="stylesheet" href="css/game.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Shippori+Mincho:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<!-- ============ 題名画面 ============ -->
+<div class="title-screen" id="title-screen">
+  <div class="title-bg"></div>
+  <div class="title-vignette"></div>
+  <div class="title-inner">
+    <p class="title-era">大正十二年　春　東京・神田</p>
+    <h1 class="title-main">
+      <span class="title-kanji">祭彩浪漫</span>
+      <span class="title-roma">MATSURI&nbsp;SAI&nbsp;ROMAN</span>
+    </h1>
+    <p class="title-route">―― 東雲 燿 編 ――</p>
+
+    <div class="title-menu">
+      <button class="t-btn t-btn-main" id="btn-start">は じ め か ら</button>
+      <button class="t-btn" id="btn-continue">つ づ き か ら</button>
+      <button class="t-btn" id="btn-title-load">記録を読む</button>
+      <button class="t-btn" id="btn-title-config">環　境　設　定</button>
+    </div>
+
+    <p class="title-clear" id="clear-mark"></p>
+    <p class="title-note">画面をクリック／スペース鍵で読み進めます。<kbd>Ctrl</kbd> 長押しで早送り。</p>
+  </div>
+</div>
+
+<!-- ============ 本編 ============ -->
+<div class="game-screen" id="game-screen">
+
+  <div class="bg-layer bg-shop" id="bg-layer"></div>
+
+  <div class="sprite-wrap" id="sprite-wrap">
+    <img id="sprite" alt="">
+  </div>
+
+  <!-- 親密度 -->
+  <div class="aff-meter" id="aff-meter" data-level="low">
+    <span class="aff-label">親密度</span>
+    <span class="aff-track"><span class="aff-bar" id="aff-bar"></span></span>
+  </div>
+
+  <!-- 台詞欄 -->
+  <div class="message-box" id="message-box">
+    <div class="mb-frame">
+      <div class="speaker-name is-hidden" id="speaker-name"></div>
+      <p class="message-text" id="message-text"></p>
+      <span class="next-marker" id="next-marker"></span>
+    </div>
+  </div>
+
+  <!-- クリック領域 -->
+  <div class="click-area" id="click-area"></div>
+
+  <!-- 操作卓 -->
+  <div class="ctrl-bar">
+    <button class="c-btn" id="btn-auto">自動</button>
+    <button class="c-btn" id="btn-skip">早送</button>
+    <button class="c-btn" id="btn-log">履歴</button>
+    <button class="c-btn" id="btn-save">記す</button>
+    <button class="c-btn" id="btn-load">読む</button>
+    <button class="c-btn" id="btn-config">設定</button>
+    <button class="c-btn" id="btn-quit">終了</button>
+  </div>
+
+  <!-- 選択肢 -->
+  <div class="choice-layer" id="choice-layer"></div>
+
+  <!-- 章タイトル -->
+  <div class="chapter-card" id="chapter-card">
+    <div class="chapter-inner">
+      <span class="chapter-rule"></span>
+      <h2 class="chapter-main" id="chapter-main"></h2>
+      <p class="chapter-sub" id="chapter-sub"></p>
+      <span class="chapter-rule"></span>
+    </div>
+  </div>
+
+  <div class="fx-layer" id="fx-layer"></div>
+</div>
+
+<!-- ============ 名前入力 ============ -->
+<div class="modal name-modal" id="name-modal">
+  <div class="modal-panel">
+    <h3 class="modal-title">あなたの名は</h3>
+    <input type="text" id="name-input" class="name-input" maxlength="8" placeholder="千代" autocomplete="off">
+    <div class="name-presets">
+      <button class="preset" data-name-preset="千代">千代</button>
+      <button class="preset" data-name-preset="美緒">美緒</button>
+      <button class="preset" data-name-preset="澄">澄</button>
+      <button class="preset" data-name-preset="ふみ">ふみ</button>
+    </div>
+    <p class="modal-note">未入力の場合は「千代」になります。</p>
+    <button class="m-btn m-btn-main" id="name-ok">決　定</button>
+  </div>
+</div>
+
+<!-- ============ 履歴 ============ -->
+<div class="modal log-modal" id="log-modal">
+  <div class="modal-panel modal-wide">
+    <h3 class="modal-title">履　歴</h3>
+    <div class="log-body" id="log-body"></div>
+    <button class="m-btn" data-close="log-modal">閉じる</button>
+  </div>
+</div>
+
+<!-- ============ セーブ／ロード ============ -->
+<div class="modal save-modal" id="save-modal">
+  <div class="modal-panel modal-wide">
+    <h3 class="modal-title" id="save-modal-title">記録</h3>
+    <div class="save-body" id="save-body"></div>
+    <button class="m-btn" data-close="save-modal">閉じる</button>
+  </div>
+</div>
+
+<!-- ============ 設定 ============ -->
+<div class="modal config-modal" id="config-modal">
+  <div class="modal-panel">
+    <h3 class="modal-title">環境設定</h3>
+    <label class="cfg-row">
+      <span class="cfg-name">文字表示の速さ</span>
+      <input type="range" id="cfg-speed" min="0" max="100" step="5">
+      <span class="cfg-val" id="cfg-speed-val">30</span>
+    </label>
+    <label class="cfg-row">
+      <span class="cfg-name">自動送りの速さ</span>
+      <input type="range" id="cfg-auto" min="0" max="100" step="5">
+      <span class="cfg-val" id="cfg-auto-val">50</span>
+    </label>
+    <button class="m-btn" data-close="config-modal">閉じる</button>
+  </div>
+</div>
+
+<!-- ============ 結末 ============ -->
+<div class="ending-screen" id="ending-screen">
+  <div class="ending-inner">
+    <h2 class="ending-title" id="ending-title"></h2>
+    <p class="ending-aff" id="ending-aff"></p>
+    <p class="ending-text" id="ending-text"></p>
+    <div class="ending-menu">
+      <button class="t-btn t-btn-main" id="btn-ending-retry">も う 一 度</button>
+      <button class="t-btn" id="btn-ending-title">題名画面へ</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/scenario.js"></script>
+<script src="js/game.js"></script>
+</body>
+</html>
