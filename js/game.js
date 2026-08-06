@@ -9,7 +9,8 @@
   const SAVE_KEY = 'saisai_roman_save_v1';
   const CFG_KEY = 'saisai_roman_cfg_v1';
   const CLEAR_KEY = 'saisai_roman_clear_v1';
-  const AFF_MAX = 16;
+  const AFF_MAX = 23;
+  const ENDING_COUNT = 3;
   const DEFAULT_NAME = '千代';
 
   /* ---------- DOM ---------- */
@@ -84,6 +85,8 @@
       bg: 'shop',
       sp: null,
       spExpr: 'normal',
+      spZoom: '',
+      rain: false,
       log: []
     };
   }
@@ -105,18 +108,24 @@
     el.bg.className = 'bg-layer bg-' + v;
   }
 
-  function setSprite(v, e) {
+  // z は寄りの段階。未指定なら直前の寄りを保つ（'far' で明示的に引く）
+  function setSprite(v, e, z) {
     if (!v) {
-      st.sp = null;
+      st.sp = null; st.spZoom = '';
       el.spriteWrap.classList.remove('is-on');
+      el.game.classList.remove('is-close');
       return;
     }
     const changed = st.sp !== v;
     st.sp = v;
     st.spExpr = e || 'normal';
+    if (z !== undefined) st.spZoom = (z === 'far') ? '' : z;
     el.sprite.src = 'assets/char/' + v + '_base.jpg';
     el.sprite.alt = '東雲 燿';
-    el.spriteWrap.className = 'sprite-wrap is-on expr-' + st.spExpr;
+    el.spriteWrap.className = 'sprite-wrap is-on expr-' + st.spExpr +
+      (st.spZoom ? ' z-' + st.spZoom : '');
+    // 寄っているあいだは背景を沈めて、ふたりだけに見えるようにする
+    el.game.classList.toggle('is-close', st.spZoom === 'close');
     if (changed) {
       el.spriteWrap.classList.add('is-enter');
       setTimeout(() => el.spriteWrap.classList.remove('is-enter'), 600);
@@ -124,6 +133,9 @@
   }
 
   function fx(kind) {
+    if (kind === 'rain_on')  { st.rain = true;  el.game.classList.add('is-raining');    return; }
+    if (kind === 'rain_off') { st.rain = false; el.game.classList.remove('is-raining'); return; }
+
     const d = document.createElement('div');
     d.className = 'fx fx-' + kind;
     el.fx.appendChild(d);
@@ -131,13 +143,17 @@
       el.game.classList.add('shaking');
       setTimeout(() => el.game.classList.remove('shaking'), 500);
     }
-    setTimeout(() => d.remove(), 1600);
+    if (kind === 'heart') {
+      el.game.classList.add('throbbing');
+      setTimeout(() => el.game.classList.remove('throbbing'), 1500);
+    }
+    setTimeout(() => d.remove(), 1800);
   }
 
   function updateAff() {
     const pct = Math.max(0, Math.min(100, (st.aff / AFF_MAX) * 100));
     el.affBar.style.width = pct + '%';
-    el.affWrap.dataset.level = st.aff >= 12 ? 'high' : st.aff >= 6 ? 'mid' : 'low';
+    el.affWrap.dataset.level = st.aff >= 18 ? 'high' : st.aff >= 9 ? 'mid' : 'low';
   }
 
   /* ---------- タイプライター ---------- */
@@ -217,7 +233,7 @@
           setBg(c.v);
           break;
         case 'sp':
-          setSprite(c.v, c.e);
+          setSprite(c.v, c.e, c.z);
           break;
         case 'aff':
           st.aff += c.v; updateAff();
@@ -345,7 +361,8 @@
     return {
       i: st.cur, aff: st.aff, name: st.name,
       flags: Object.assign({}, st.flags),
-      chapter: st.chapter, bg: st.bg, sp: st.sp, spExpr: st.spExpr,
+      chapter: st.chapter, bg: st.bg,
+      sp: st.sp, spExpr: st.spExpr, spZoom: st.spZoom, rain: st.rain,
       log: st.log.slice(-60),
       at: new Date().toLocaleString('ja-JP', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }),
       preview: (SCENARIO[st.cur] && SCENARIO[st.cur].v ? subst(String(SCENARIO[st.cur].v)) : '').slice(0, 34)
@@ -377,7 +394,10 @@
     el.ending.classList.remove('is-on');
     el.game.classList.add('is-on');
     setBg(d.bg || 'shop');
-    if (d.sp) setSprite(d.sp, d.spExpr); else setSprite(null);
+    st.spZoom = d.spZoom || '';
+    if (d.sp) setSprite(d.sp, d.spExpr, d.spZoom || 'far'); else setSprite(null);
+    st.rain = !!d.rain;
+    el.game.classList.toggle('is-raining', st.rain);
     updateAff();
     skip = false; auto = false; syncModeBtns();
     waiting = true;
@@ -456,6 +476,7 @@
     el.game.classList.add('is-on');
     setBg('shop');
     setSprite(null);
+    el.game.classList.remove('is-raining', 'is-close', 'throbbing', 'shaking');
     updateAff();
     skip = false; auto = false; syncModeBtns();
     waiting = true;
@@ -476,7 +497,9 @@
     let cleared = {};
     try { cleared = JSON.parse(localStorage.getItem(CLEAR_KEY) || '{}'); } catch (e) {}
     const got = Object.keys(cleared).length;
-    el.clearMark.textContent = got ? '到達した結末　' + got + ' / 2　（' + Object.keys(cleared).sort().join('・') + '）' : '';
+    el.clearMark.textContent = got
+      ? '到達した結末　' + got + ' / ' + ENDING_COUNT + '　（' + Object.keys(cleared).sort().join('・') + '）'
+      : '';
     const saves = readSaves();
     $('btn-continue').disabled = !saves.auto;
   }
