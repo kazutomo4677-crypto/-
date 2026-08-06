@@ -18,6 +18,10 @@
 
   --mincho: 'Shippori Mincho', 'Yu Mincho', 'Hiragino Mincho ProN', serif;
   --gothic: 'Noto Sans JP', sans-serif;
+
+  /* 立ち絵の輪郭をぼかすマスク。乗算の色板と共有する */
+  --sp-mask: radial-gradient(ellipse 62% 60% at 49% 41%,
+    #000 44%, rgba(0,0,0,.9) 62%, rgba(0,0,0,.45) 80%, transparent 97%);
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -407,7 +411,13 @@ kbd {
   width: min(46vw, 56vh);
   aspect-ratio: 738 / 842;
   opacity: 0; pointer-events: none;
-  transition: opacity .55s ease, transform .55s ease, filter .5s ease;
+  /* 場面の色を敷き、立ち絵をその上に乗算で重ねる。
+     元絵の明るい背景がそのまま場面の色に沈むので、夜にも灯りにも馴染む */
+  background-color: var(--scene-tint, #ffffff);
+  -webkit-mask-image: var(--sp-mask); mask-image: var(--sp-mask);
+  -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
+  -webkit-mask-size: 100% 100%; mask-size: 100% 100%;
+  transition: opacity .55s ease, transform .55s ease, background-color .9s ease;
   transform: translateY(14px) scale(.99);
 }
 .sprite-wrap.is-on { opacity: 1; transform: translateY(0) scale(1); }
@@ -426,28 +436,34 @@ kbd {
 .sprite-wrap img {
   display: block; width: 100%; height: 100%;
   object-fit: cover;
-  /* 矩形の縁を落とし、大正期の写真館の肖像のようにぼかして背景になじませる */
-  -webkit-mask-image: radial-gradient(ellipse 62% 60% at 49% 41%,
-    #000 44%, rgba(0,0,0,.9) 62%, rgba(0,0,0,.45) 80%, transparent 97%);
-  mask-image: radial-gradient(ellipse 62% 60% at 49% 41%,
-    #000 44%, rgba(0,0,0,.9) 62%, rgba(0,0,0,.45) 80%, transparent 97%);
-  -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
-  -webkit-mask-size: 100% 100%; mask-size: 100% 100%;
-  filter: drop-shadow(0 12px 34px rgba(0,0,0,.55));
+  mix-blend-mode: multiply;
   transition: filter .45s ease, transform .45s ease;
 }
 
-/* 表情差分（フィルタによる擬似表現） */
-.expr-normal   img { filter: drop-shadow(0 12px 34px rgba(0,0,0,.55)); }
-.expr-smile    img { filter: brightness(1.07) saturate(1.08) drop-shadow(0 12px 34px rgba(0,0,0,.5)); }
-.expr-serious  img { filter: contrast(1.14) saturate(.9) brightness(.94) drop-shadow(0 14px 38px rgba(0,0,0,.62)); transform: scale(1.035); }
-.expr-surprise img { filter: brightness(1.12) saturate(1.06) drop-shadow(0 12px 30px rgba(0,0,0,.5)); transform: scale(1.05); }
-.expr-blush    img { filter: brightness(1.06) saturate(1.22) hue-rotate(-8deg) drop-shadow(0 12px 34px rgba(0,0,0,.5)); }
-.expr-sad      img { filter: saturate(.72) brightness(.88) drop-shadow(0 10px 30px rgba(0,0,0,.6)); transform: scale(.985); }
+/* 表情差分（フィルタによる擬似表現）。乗算のため影は付けない */
+.expr-normal   img { filter: none; }
+.expr-smile    img { filter: brightness(1.07) saturate(1.08); }
+.expr-serious  img { filter: contrast(1.14) saturate(.9) brightness(.94); transform: scale(1.035); }
+.expr-surprise img { filter: brightness(1.12) saturate(1.06); transform: scale(1.05); }
+.expr-blush    img { filter: brightness(1.06) saturate(1.22) hue-rotate(-8deg); }
+.expr-sad      img { filter: saturate(.72) brightness(.88); transform: scale(.985); }
 /* 見据える目。影を締めて視線を強く見せる */
-.expr-intense  img { filter: contrast(1.2) saturate(1.02) brightness(.97) drop-shadow(0 16px 42px rgba(0,0,0,.7)); transform: scale(1.055); }
+.expr-intense  img { filter: contrast(1.2) saturate(1.02) brightness(.97); transform: scale(1.055); }
 /* 不敵な笑み。少しだけ傾ける */
-.expr-smirk    img { filter: brightness(1.04) saturate(1.12) drop-shadow(0 12px 32px rgba(0,0,0,.55)); transform: scale(1.02) rotate(-1.2deg); }
+.expr-smirk    img { filter: brightness(1.04) saturate(1.12); transform: scale(1.02) rotate(-1.2deg); }
+
+/* 場面ごとの色。立ち絵の下に敷かれ、乗算で元絵の明るい背景を沈める */
+.game-screen[data-scene="shop"],
+.game-screen[data-scene="shop_inner"],
+.game-screen[data-scene="shop_dusk"] { --scene-tint: rgb(255,231,203); }
+.game-screen[data-scene="room"]         { --scene-tint: rgb(247,214,171); }
+.game-screen[data-scene="street"]       { --scene-tint: rgb(255,199,164); }
+.game-screen[data-scene="festival"]     { --scene-tint: rgb(233,143,124); }
+.game-screen[data-scene="dark_alley"]   { --scene-tint: rgb(104,126,175); }
+.game-screen[data-scene="rain_street"]  { --scene-tint: rgb(126,146,186); }
+.game-screen[data-scene="atelier"]      { --scene-tint: rgb(255,206,150); }
+.game-screen[data-scene="atelier_lamp"] { --scene-tint: rgb(255,199,137); }
+.game-screen[data-scene="atelier_dawn"] { --scene-tint: rgb(206,214,236); }
 
 /* 照れの朱み */
 .sprite-wrap::after {

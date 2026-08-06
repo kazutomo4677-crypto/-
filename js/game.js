@@ -106,6 +106,8 @@
   function setBg(v) {
     st.bg = v;
     el.bg.className = 'bg-layer bg-' + v;
+    // 立ち絵に場面の色を乗せるため、場面名を上位に伝える
+    el.game.dataset.scene = v;
   }
 
   // z は寄りの段階。未指定なら直前の寄りを保つ（'far' で明示的に引く）
