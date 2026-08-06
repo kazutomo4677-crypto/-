@@ -150,6 +150,11 @@ const cartTotalPrice = document.getElementById('cart-total-price');
 const productsGrid = document.getElementById('products-grid');
 const filterBtns = document.querySelectorAll('.filter-btn');
 
+// --- Plugin event helper ---
+function emitPluginEvent(event, data) {
+  if (window.MatsuriPlugins) window.MatsuriPlugins.emit(event, data);
+}
+
 // --- Helper: Format price ---
 function formatPrice(price) {
   return '¥' + price.toLocaleString();
@@ -163,6 +168,8 @@ function createGradient(colors) {
 
 // --- Render Products ---
 function renderProducts(category = 'all') {
+  if (!productsGrid) return;
+
   const filtered = category === 'all'
     ? products
     : products.filter(p => p.category === category);
@@ -215,6 +222,8 @@ function renderProducts(category = 'all') {
       window.location.href = `product.html?id=${id}`;
     });
   });
+
+  emitPluginEvent('products:render', { category, products: filtered });
 }
 
 // --- Filter ---
@@ -222,7 +231,9 @@ filterBtns.forEach(btn => {
   btn.addEventListener('click', () => {
     filterBtns.forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
-    renderProducts(btn.dataset.category);
+    const category = btn.dataset.category;
+    renderProducts(category);
+    emitPluginEvent('filter:change', { category });
   });
 });
 
@@ -240,14 +251,14 @@ function addToCart(productId) {
 
   updateCart();
   showToast(`${product.name} をカートに追加しました`);
-
-  // Trigger confetti
   createConfetti(8);
+  emitPluginEvent('cart:add', { product, cart: cart.slice() });
 }
 
 function removeFromCart(productId) {
   cart = cart.filter(item => item.id !== productId);
   updateCart();
+  emitPluginEvent('cart:remove', { productId, cart: cart.slice() });
 }
 
 function updateQty(productId, delta) {
@@ -310,6 +321,7 @@ function updateCart() {
 
   // Save to localStorage
   localStorage.setItem('matsuri-cart', JSON.stringify(cart));
+  emitPluginEvent('cart:update', { cart: cart.slice(), totalItems, totalPrice });
 }
 
 // Load cart from localStorage
@@ -330,12 +342,14 @@ function openCart() {
   cartSidebar.classList.add('active');
   cartOverlay.classList.add('active');
   document.body.style.overflow = 'hidden';
+  emitPluginEvent('cart:open', {});
 }
 
 function closeCart() {
   cartSidebar.classList.remove('active');
   cartOverlay.classList.remove('active');
   document.body.style.overflow = '';
+  emitPluginEvent('cart:close', {});
 }
 
 cartBtn.addEventListener('click', openCart);
@@ -380,6 +394,8 @@ searchInput.addEventListener('input', (e) => {
   if (results.length === 0) {
     searchResults.innerHTML = '<p style="text-align:center;color:#9ca3af;padding:24px;">検索結果が見つかりません</p>';
   }
+
+  emitPluginEvent('search:query', { query, results });
 });
 
 // --- Hamburger Menu ---
@@ -496,19 +512,34 @@ function showToast(message) {
 }
 
 // --- Newsletter Form ---
-document.getElementById('newsletter-form').addEventListener('submit', (e) => {
-  e.preventDefault();
-  showToast('ご登録ありがとうございます！');
-  e.target.reset();
-  createConfetti(15);
-});
+const newsletterForm = document.getElementById('newsletter-form');
+if (newsletterForm) {
+  newsletterForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const email = newsletterForm.querySelector('input[type="email"]').value;
+    showToast('ご登録ありがとうございます！');
+    e.target.reset();
+    createConfetti(15);
+    emitPluginEvent('form:newsletter', { email });
+  });
+}
 
 // --- Contact Form ---
-document.getElementById('contact-form').addEventListener('submit', (e) => {
-  e.preventDefault();
-  showToast('お問い合わせを送信しました');
-  e.target.reset();
-});
+const contactForm = document.getElementById('contact-form');
+if (contactForm) {
+  contactForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const data = {
+      name:    document.getElementById('name').value,
+      email:   document.getElementById('email').value,
+      subject: document.getElementById('subject').value,
+      message: document.getElementById('message').value,
+    };
+    showToast('お問い合わせを送信しました');
+    e.target.reset();
+    emitPluginEvent('form:contact', { data });
+  });
+}
 
 // --- Smooth scroll for anchor links ---
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
@@ -530,4 +561,18 @@ window.addEventListener('load', () => {
 document.addEventListener('DOMContentLoaded', () => {
   renderProducts();
   loadCart();
+  emitPluginEvent('app:ready', { page: document.title });
 });
+
+// --- Public API for plugins ---
+window.MatsuriApp = {
+  getCart:    () => cart.slice(),
+  getProducts:(category) => {
+    if (!category || category === 'all') return products.slice();
+    return products.filter(p => p.category === category);
+  },
+  addToCart,
+  openCart,
+  closeCart,
+  showToast,
+};
