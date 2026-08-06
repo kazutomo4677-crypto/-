@@ -551,8 +551,9 @@ kbd {
 }
 
 /* ---------- 雨 ---------- */
+/* 立ち絵より手前、台詞欄より奥に降らせる */
 .game-screen::after {
-  content: ''; position: absolute; inset: -20% 0 0; z-index: 3;
+  content: ''; position: absolute; inset: -20% 0 0; z-index: 2;
   pointer-events: none; opacity: 0;
   background-image:
     repeating-linear-gradient(102deg, rgba(210,225,255,.34) 0 1px, transparent 1px 7px),
