@@ -546,7 +546,7 @@ def build_hair():
 
     # 顔の脇に流れる細い毛束 (シルエットに動きを出す)
     for s in (-1, 1):
-        base = skull_pt(s * 1.10, hairline(s * 1.10))
+        base = skull_pt(s * 1.34, hairline(s * 1.34))
         pts = [base,
                base + Vector((s * 0.014, -0.026, -0.085)),
                base + Vector((s * 0.030, -0.022, -0.165)),
@@ -656,8 +656,8 @@ def build_torso():
     parts.append(chest_patch("print_b", 0.0, 0.620, 0.46, 0.034, "print_yellow", 0.164))
 
     # パーカーのフード (オレンジ)
-    parts.append(prim("sphere", "hood_back", hood, scale=(0.135, 0.105, 0.095),
-                      loc=(0, 0.105, 0.760), rot=(radians(18), 0, 0)))
+    parts.append(prim("sphere", "hood_back", hood, scale=(0.128, 0.088, 0.078),
+                      loc=(0, 0.082, 0.742), rot=(radians(22), 0, 0)))
     parts.append(prim("torus", "hood_collar", hood, major_radius=0.086,
                       minor_radius=0.030, loc=(0, 0.020, 0.742),
                       rot=(radians(6), 0, 0), scale=(1.0, 0.86, 1.0)))
@@ -1111,10 +1111,10 @@ def build_all():
 # ---------------------------------------------------------------------------
 # view -> (方位角, カメラ距離, カメラ高さ, 注視点)
 VIEWS = {
-    "front": (0.0, 2.85, 0.62, (0, 0, 0.50)),
-    "hero": (32.0, 2.85, 0.68, (0, 0, 0.50)),
-    "side": (72.0, 2.85, 0.62, (0, 0, 0.50)),
-    "back": (156.0, 2.85, 0.66, (0, 0, 0.50)),
+    "front": (0.0, 2.85, 0.62, (0, -0.04, 0.50)),
+    "hero": (32.0, 3.30, 0.74, (0, -0.14, 0.44)),
+    "side": (72.0, 3.30, 0.68, (0, -0.16, 0.42)),
+    "back": (156.0, 3.10, 0.72, (0, -0.02, 0.46)),
     "face": (12.0, 1.05, 0.95, (0, 0, 0.90)),
 }
 
