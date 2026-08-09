@@ -506,11 +506,14 @@ def build_hair():
     def hair_len(az):
         """方位角ごとの毛先までの長さ。正面(顔)はゼロで、横～後ろは肩まで届く."""
         a = abs(((az + pi) % (2 * pi)) - pi)
-        if a < 0.85:
-            return 0.010
-        if a < 1.40:
-            return lerp(0.010, 0.250, smoothstep(0.85, 1.40, a))
-        return lerp(0.250, 0.335, smoothstep(1.40, 2.20, a))
+        if a < 0.90:
+            base = 0.010
+        elif a < 1.45:
+            base = lerp(0.010, 0.235, smoothstep(0.90, 1.45, a))
+        else:
+            base = lerp(0.235, 0.330, smoothstep(1.45, 2.20, a))
+        # 毛先を不揃いにして、まっすぐ切った裾に見えないようにする
+        return base * (1.0 + 0.13 * sin(az * 6.0 + 0.8))
 
     def skull_pt(az, el):
         n = Vector((sin(az) * cos(el), -cos(az) * cos(el), sin(el)))
@@ -637,19 +640,20 @@ def build_torso():
                       loc=(0, 0.030, 0.325)))
 
     # Tシャツのプリント (胸の曲面に沿わせる)
-    def chest_patch(name, cx, cz, rw, rh, material_key):
+    def chest_patch(name, cx, cz, rw, rh, material_key, rad):
+        """Tシャツ表面(半径 ~0.150)より外、ジャケット内側(~0.170)より内側に貼る."""
         def fn(u, v):
             th = 2 * pi * u
             a = cx + rw * v * cos(th)
             z = cz + rh * v * sin(th)
-            rad = 0.152
             return Vector((sin(a) * rad, -cos(a) * rad * 0.70, z))
-        return grid_mesh(name, 24, 8, fn, mat(material_key, size=0.75),
-                         thickness=0.002, close_u=True)
+        return grid_mesh(name, 32, 10, fn, mat(material_key, size=0.75),
+                         thickness=0.003, close_u=True)
 
-    parts.append(chest_patch("print_a", 0.0, 0.556, 0.52, 0.062, "print_pink"))
-    parts.append(chest_patch("print_b", 0.0, 0.624, 0.46, 0.040, "print_yellow"))
-    parts.append(chest_patch("print_c", 0.0, 0.492, 0.40, 0.036, "print_cream"))
+    # 高さで分け、さらに半径をずらして重なっても Z ファイティングしないようにする
+    parts.append(chest_patch("print_c", 0.0, 0.478, 0.42, 0.030, "print_cream", 0.158))
+    parts.append(chest_patch("print_a", 0.0, 0.548, 0.52, 0.038, "print_pink", 0.161))
+    parts.append(chest_patch("print_b", 0.0, 0.620, 0.46, 0.034, "print_yellow", 0.164))
 
     # パーカーのフード (オレンジ)
     parts.append(prim("sphere", "hood_back", hood, scale=(0.135, 0.105, 0.095),
@@ -695,9 +699,12 @@ def build_torso():
         (-1.05, 0.470, "rb_green", (0.042, 0.006, 0.038)),
     ]
     for i, (a, z, key, sc) in enumerate(patch_specs):
-        rad = 0.190
+        # ジャケットのシェルと同じ式で位置を求め、外表面より少しだけ外に出す
+        t = (0.735 - z) / 0.42
+        rad = lerp(0.176, 0.196, t) + 0.010
+        drop = 0.02 * smoothstep(0.0, 1.0, t)
         parts.append(prim("cube", f"patch_{i}", mat(key, size=0.75), scale=sc,
-                          loc=(sin(a) * rad, -cos(a) * rad * 0.74, z),
+                          loc=(sin(a) * rad, -cos(a) * (rad - drop) * 0.72, z),
                           rot=(0, 0, -a), smooth=False))
 
     # ビーズのネックレス
@@ -847,21 +854,23 @@ def build_shoe(s):
     blue = mat("shoe_blue", size=0.45)
 
     # ソール (白いラバー)
-    sole = prim("cube", "sole", rubber, scale=(0.098, 0.236, 0.034), loc=(0, 0, 0.018),
+    sole = prim("cube", "sole", rubber, scale=(0.094, 0.232, 0.034), loc=(0, 0, 0.018),
                 smooth=False)
-    bevel(sole, 0.022, 4)
-    subsurf(sole, 2)
+    bevel(sole, 0.020, 4)
+    subsurf(sole, 1)
     shade_smooth(sole)
     objs.append(sole)
     # ミッドソールのライン
-    objs.append(prim("cube", "midsole", cream, scale=(0.100, 0.234, 0.012),
-                     loc=(0, 0, 0.038), smooth=False))
+    midsole = prim("cube", "midsole", cream, scale=(0.086, 0.208, 0.014),
+                   loc=(0, 0, 0.036), smooth=False)
+    bevel(midsole, 0.006, 2)
+    objs.append(midsole)
 
     # アッパー
-    upper = prim("cube", "upper", orange, scale=(0.100, 0.202, 0.116), loc=(0, 0.008, 0.098),
+    upper = prim("cube", "upper", orange, scale=(0.104, 0.200, 0.118), loc=(0, 0.008, 0.096),
                  smooth=False)
-    bevel(upper, 0.026, 4)
-    subsurf(upper, 2)
+    bevel(upper, 0.030, 5)
+    subsurf(upper, 1)
     shade_smooth(upper)
     objs.append(upper)
 
