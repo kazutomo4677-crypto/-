@@ -76,7 +76,7 @@ PALETTE = {
     "print_cream": "#FFF3D6",
 
     "gold":        "#E0A62B",
-    "thread":      "#F2C766",
+    "thread":      "#CFA557",
     "rb_red":      "#E8483C",
     "rb_orange":   "#F5901E",
     "rb_yellow":   "#F7D046",
@@ -901,15 +901,18 @@ def build_hair():
 
     # 頭に沿って流れる層 (頭頂がのっぺりしないように)
     crown_paths = []
-    for i in range(46):
-        az = 2 * pi * i / 46 + 0.07
-        el_end = hairline(az) + 0.04
+    for i in range(34):
+        az = 2 * pi * i / 34 + 0.07
+        # 長さと太さをばらして、規則正しい編み目に見えないようにする
+        stop = lerp(0.55, 1.0, 0.5 + 0.5 * sin(i * 2.3))
+        el_end = lerp(1.30, hairline(az) + 0.04, stop)
+        w = lerp(0.0045, 0.0085, 0.5 + 0.5 * sin(i * 1.7 + 0.9))
         pts, radii = [], []
         for k in range(7):
             t = k / 6.0
             el = lerp(1.30, el_end, t ** 1.05)
-            pts.append(skull_pt(az, el) + Vector((0, 0, 0)) * 0)
-            radii.append(smoothstep(0.0, 0.16, t) * lerp(0.011, 0.003, t ** 1.2))
+            pts.append(skull_pt(az + 0.05 * sin(i + t * 2.0), el))
+            radii.append(smoothstep(0.0, 0.18, t) * lerp(w, 0.002, t ** 1.2))
         crown_paths.append((pts, radii))
     parts.append(strands("hair_crown_layer", crown_paths, hair, profile=profile))
 
@@ -923,29 +926,16 @@ def build_hair():
             az = s * lerp(0.12, 0.80, u)
             el = lerp(0.86, 0.62, u)
             start = skull_pt(az, el)
-            drop = lerp(0.030, 0.090, u)         # サングラスの上で止める
-            side = s * lerp(0.045, 0.095, u)
+            drop = lerp(0.045, 0.105, u)         # サングラスの上で止める
+            side = s * lerp(0.030, 0.058, u)
             pts = [
                 start,
-                start + Vector((side * 0.42, -0.016, -drop * 0.30)),
-                start + Vector((side * 0.82, -0.020, -drop * 0.68)),
-                start + Vector((side * 1.08, -0.008, -drop)),
+                start + Vector((side * 0.40, -0.014, -drop * 0.34)),
+                start + Vector((side * 0.74, -0.018, -drop * 0.74)),
+                start + Vector((side * 0.90, -0.006, -drop)),
             ]
             fringe_paths.append((pts, [0.004, 0.014, 0.010, 0.002]))
     parts.append(strands("hair_fringe", fringe_paths, hair_lt, profile=profile))
-
-    # 後れ毛 (細く跳ねる毛)
-    wisp_paths = []
-    for s in (-1, 1):
-        for i, (az, el, ln) in enumerate(((1.05, 0.20, 0.16), (1.55, 0.02, 0.22),
-                                          (2.30, -0.30, 0.18))):
-            start = skull_pt(s * az, el)
-            pts = [start,
-                   start + Vector((s * 0.030, -0.010, -ln * 0.45)),
-                   start + Vector((s * 0.058, 0.006, -ln * 0.85)),
-                   start + Vector((s * 0.072, 0.018, -ln))]
-            wisp_paths.append((pts, [0.002, 0.004, 0.003, 0.0008]))
-    parts.append(strands("hair_wisps", wisp_paths, hair_lt, profile=profile))
 
     bpy.data.objects.remove(profile, do_unlink=True)
     return parts
@@ -1116,7 +1106,7 @@ def build_torso():
         parts.append(stitching(
             f"stitch_placket_{s}",
             lambda t, s=s: jacket_surface(s * 0.322, lerp(0.716, 0.334, t), 0.010)[0],
-            thread, count=30, dash=0.5, radius=0.0017))
+            thread, count=30, dash=0.5, radius=0.0011))
 
     # 裾のバンド
     for s in (-1, 1):
@@ -1128,7 +1118,7 @@ def build_torso():
         parts.append(stitching(
             f"stitch_hem_{s}",
             lambda t, s=s: jacket_surface(s * lerp(0.24, pi - 0.05, t), 0.356, 0.009)[0],
-            thread, count=34, dash=0.5, radius=0.0016))
+            thread, count=34, dash=0.5, radius=0.0011))
 
     # 胸ポケット (フラップ + ボタン) と肩のヨーク線
     for s in (-1, 1):
@@ -1143,11 +1133,11 @@ def build_torso():
         parts.append(stitching(
             f"stitch_pocket_{s}",
             lambda t, s=s: jacket_surface(s * (0.62 + 0.30 * (2 * t - 1)), 0.645, 0.010)[0],
-            thread, count=14, dash=0.5, radius=0.0016))
+            thread, count=14, dash=0.5, radius=0.0011))
         parts.append(stitching(
             f"stitch_yoke_{s}",
             lambda t, s=s: jacket_surface(s * lerp(0.30, 1.75, t), 0.664, 0.009)[0],
-            thread, count=26, dash=0.5, radius=0.0017))
+            thread, count=26, dash=0.5, radius=0.0011))
 
     # 前立てのボタン
     for i in range(4):
@@ -1169,7 +1159,7 @@ def build_torso():
         "stitch_collar",
         lambda t: (lambda a: Vector((sin(a) * 0.104, -cos(a) * 0.086 + 0.030, 0.735)))(
             lerp(-2.5, 2.5, t)),
-        thread, count=30, dash=0.5, radius=0.0016))
+        thread, count=30, dash=0.5, radius=0.0011))
 
     # ジャケットのワッペン (縁取り付き)
     patch_specs = [
@@ -1239,13 +1229,13 @@ def build_arms():
         parts.append(stitching(
             f"stitch_shoulder_{s}",
             lambda t, surf=arm_surf: surf(0.10, 2 * pi * t, 0.0035),
-            thread, count=24, dash=0.5, radius=0.0016))
+            thread, count=24, dash=0.5, radius=0.0011))
         parts.append(stitching(
             f"stitch_sleeve_{s}",
             lambda t, surf=arm_surf, w=arm_out: surf(
                 lerp(0.14, 0.92, t),
                 dir_angle(surf, lerp(0.14, 0.92, t), w), 0.0035),
-            thread, count=34, dash=0.5, radius=0.0016))
+            thread, count=34, dash=0.5, radius=0.0011))
 
         # まくり上げた白いカフス
         d = (wrist - elbow).normalized()
@@ -1255,7 +1245,7 @@ def build_arms():
         parts.append(stitching(
             f"stitch_cuffarm_{s}",
             lambda t, surf=arm_surf: surf(0.955, 2 * pi * t, 0.004),
-            thread, count=20, dash=0.5, radius=0.0014))
+            thread, count=20, dash=0.5, radius=0.0010))
         # 前腕
         fore = wrist + d * 0.050
         parts.append(capsule(f"forearm_{s}", tuple(wrist + d * 0.02), tuple(fore + d * 0.05),
@@ -1320,8 +1310,8 @@ def build_hand(s):
             p = p + d * step
             pts.append(p.copy())
             radii.append(radius * (1.0 - 0.34 * (i / (segs - 1)) ** 1.2))
-            if i in (2, 4):
-                joints.append((p.copy(), radius * 0.96))
+            if i == 3:
+                joints.append((p.copy(), radius * 0.90))
         out = [tube(name, pts, radii, skin)]
         for k, (jp, jr) in enumerate(joints):
             out.append(prim("sphere", f"{name}_joint_{k}", skin,
@@ -1346,8 +1336,8 @@ def build_hand(s):
     ]
     for i, (x, length, radius, curl, spread) in enumerate(finger_specs):
         objs.append(prim("sphere", f"knuckle_{s}_{i}", skin,
-                         scale=(radius * 1.05, radius * 0.95, radius * 0.95),
-                         loc=(x, -0.042, 0.0), segments=16, ring_count=8))
+                         scale=(radius * 0.98, radius * 0.90, radius * 0.88),
+                         loc=(x, -0.040, 0.0), segments=16, ring_count=8))
         objs += curled_finger(f"finger_{s}_{i}", (x, -0.046, 0.0),
                               (spread, -1.0, -0.06), length, radius, curl)
 
@@ -1431,17 +1421,17 @@ def build_legs():
             return surf(tt, dir_angle(surf, tt, want), 0.0035)
 
         parts.append(stitching(f"seam_out_{s}", seam_pt, thread,
-                               count=42, dash=0.5, radius=0.0017))
+                               count=42, dash=0.5, radius=0.0011))
         parts.append(stitching(
             f"seam_in_{s}",
             lambda t, surf=surf, w=in_dir: seam_pt(t, surf, w, 0.12, 0.92),
-            thread, count=34, dash=0.5, radius=0.0016))
+            thread, count=34, dash=0.5, radius=0.0011))
         # ひざの補強ステッチ (外側の角度を中心に扇状に)
         parts.append(stitching(
             f"seam_knee_{s}",
             lambda t, surf=surf, w=out_dir: surf(
                 0.47, dir_angle(surf, 0.47, w) + lerp(-1.1, 1.1, t), 0.0035),
-            thread, count=13, dash=0.5, radius=0.0015))
+            thread, count=13, dash=0.5, radius=0.0010))
 
         # まくり上げた裾: 外側の折り返しと内側の生地
         d = (ankle - knee).normalized()
@@ -1454,7 +1444,7 @@ def build_legs():
         parts.append(stitching(
             f"stitch_cuff_{s}",
             lambda t, surf=surf: surf(0.905, 2 * pi * t, 0.004),
-            thread, count=22, dash=0.5, radius=0.0015))
+            thread, count=22, dash=0.5, radius=0.0010))
 
         # 靴下 (グリーン): 足首からスニーカーの履き口へ
         collar = SHOE_LOC(s) + Vector((s * 0.020, 0.121, 0.140))
@@ -1501,7 +1491,7 @@ def build_shoe(s):
     objs.append(outsole)
     # 靴底のトレッド
     for i in range(9):
-        y = lerp(-0.090, 0.090, i / 8.0)
+        y = lerp(-0.062, 0.078, i / 8.0)
         objs.append(prim("cube", f"tread_{i}", outsole_m,
                          scale=(0.074 * last_width(abs(y / 0.115) * 0.5 + 0.25),
                                 0.009, 0.010),
@@ -1514,8 +1504,8 @@ def build_shoe(s):
     subsurf(mid, 1)
     shade_smooth(mid)
     objs.append(mid)
-    objs.append(prim("torus", "foxing", cream, major_radius=0.080, minor_radius=0.0075,
-                     loc=(0, 0, 0.041), scale=(1.0, 1.32, 0.8)))
+    objs.append(prim("torus", "foxing", cream, major_radius=0.047, minor_radius=0.006,
+                     loc=(0, 0, 0.041), scale=(1.0, 2.25, 0.8)))
 
     # --- アッパー (キャンバス) ---
     upper = prim("cube", "upper", orange, scale=(0.100, 0.194, 0.124),
