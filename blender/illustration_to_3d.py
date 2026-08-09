@@ -358,7 +358,7 @@ def grid_mesh(name, nu, nv, fn, material, thickness=0.0, close_u=False,
     return obj
 
 
-def tube(name, points, radii, material, coll=SUBJECT, res=8, bevres=6, order=3):
+def tube(name, points, radii, material, coll=SUBJECT, res=6, bevres=4, order=3):
     """半径が変化するチューブ(NURBS カーブ + ベベル)をメッシュ化して返す."""
     cu = bpy.data.curves.new(name, "CURVE")
     cu.dimensions = "3D"
@@ -389,20 +389,20 @@ def flat_profile(name, width=1.0, thickness=0.30):
     cu = bpy.data.curves.new(name, "CURVE")
     cu.dimensions = "2D"
     sp = cu.splines.new("NURBS")
-    n = 12
+    n = 8
     sp.points.add(n - 1)
     for i in range(n):
         a = 2 * pi * i / n
         sp.points[i].co = (cos(a) * width, sin(a) * thickness, 0.0, 1.0)
     sp.use_cyclic_u = True
     sp.order_u = 3
-    cu.resolution_u = 4
+    cu.resolution_u = 2
     obj = bpy.data.objects.new(name, cu)
     bpy.context.scene.collection.objects.link(obj)
     return obj
 
 
-def strands(name, paths, material, profile=None, coll=SUBJECT, res=8):
+def strands(name, paths, material, profile=None, coll=SUBJECT, res=4):
     """複数の毛束をまとめて 1 オブジェクトにする。
 
     paths は [(点のリスト, 半径のリスト), ...]。profile を渡すとリボン状の
@@ -898,6 +898,20 @@ def build_hair():
                 paths.append((pts, [x * rad_k for x in radii]))
         m = hair if lname != "hair_top" else hair_lt
         parts.append(strands(lname, paths, m, profile=profile))
+
+    # 頭に沿って流れる層 (頭頂がのっぺりしないように)
+    crown_paths = []
+    for i in range(46):
+        az = 2 * pi * i / 46 + 0.07
+        el_end = hairline(az) + 0.04
+        pts, radii = [], []
+        for k in range(7):
+            t = k / 6.0
+            el = lerp(1.30, el_end, t ** 1.05)
+            pts.append(skull_pt(az, el) + Vector((0, 0, 0)) * 0)
+            radii.append(smoothstep(0.0, 0.16, t) * lerp(0.011, 0.003, t ** 1.2))
+        crown_paths.append((pts, radii))
+    parts.append(strands("hair_crown_layer", crown_paths, hair, profile=profile))
 
     # ------------------------------------------------------------------
     # 前髪: 分け目から左右に流して顔を縁取る
@@ -1935,13 +1949,20 @@ def main():
     bpy.ops.wm.save_as_mainfile(filepath=blend_path)
     print(f"[saved] {blend_path}")
 
+    glb = os.path.join(out_dir, "illustration_3d.glb")
     try:
         bpy.ops.export_scene.gltf(
-            filepath=os.path.join(out_dir, "illustration_3d.glb"),
-            export_format="GLB", use_visible=True)
-        print("[saved] illustration_3d.glb")
-    except Exception as exc:                                  # noqa: BLE001
-        print(f"[warn] glTF export skipped: {exc}")
+            filepath=glb, export_format="GLB", use_visible=True,
+            export_draco_mesh_compression_enable=True,
+            export_draco_mesh_compression_level=6)
+        print("[saved] illustration_3d.glb (draco)")
+    except Exception:                                         # noqa: BLE001
+        try:
+            bpy.ops.export_scene.gltf(filepath=glb, export_format="GLB",
+                                      use_visible=True)
+            print("[saved] illustration_3d.glb")
+        except Exception as exc:                              # noqa: BLE001
+            print(f"[warn] glTF export skipped: {exc}")
 
     if not args["render"]:
         return
