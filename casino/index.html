@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>紅扇 BENI-OUGI ROYAL CASINO</title>
+  <meta name="description" content="和の美と夜の華やぎが交差する、3Dモーションのカジノ・エンターテインメントサイト。">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Shippori+Mincho+B1:wght@500;700;800&family=Noto+Sans+JP:wght@300;400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/casino.css">
+  <script type="importmap">
+    { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js" } }
+  </script>
+</head>
+<body>
+  <!-- Loader -->
+  <div class="loader" id="loader">
+    <div class="loader-chip"><span>紅</span></div>
+    <p class="loader-text">SHUFFLING<span class="dots"></span></p>
+  </div>
+
+  <!-- Cursor glow -->
+  <div class="cursor-glow" id="cursor-glow" aria-hidden="true"></div>
+
+  <!-- Header -->
+  <header class="header" id="header">
+    <a href="#hero" class="logo">
+      <span class="logo-mark">扇</span>
+      <span class="logo-en">BENI-OUGI<small>ROYAL CASINO</small></span>
+    </a>
+    <nav class="nav" id="nav">
+      <a href="#concept">Concept</a>
+      <a href="#games">Games</a>
+      <a href="#slot">Slot</a>
+      <a href="#vip">VIP</a>
+    </nav>
+    <div class="credits" title="遊戯用クレジット（換金不可）">
+      <span class="credits-chip"></span>
+      <span id="credits">1,000</span>
+    </div>
+    <button class="menu-btn" id="menu-btn" aria-label="メニュー"><span></span><span></span></button>
+  </header>
+
+  <!-- HERO: Three.js -->
+  <section class="hero" id="hero">
+    <canvas id="stage" aria-label="3Dで浮遊する芸妓のイラストとトランプ、チップ"></canvas>
+    <div class="hero-fallback" aria-hidden="true"><img src="assets/geisha.jpg" alt=""></div>
+    <div class="hero-copy">
+      <p class="eyebrow reveal">— Since the Night of Crimson Fans —</p>
+      <h1 class="hero-title">
+        <span class="line"><span class="split">紅き扇に</span></span>
+        <span class="line"><span class="split">運命を賭けて。</span></span>
+      </h1>
+      <p class="hero-en reveal">FORTUNE FAVORS THE GRACEFUL</p>
+      <div class="hero-actions reveal">
+        <a href="#slot" class="btn btn-gold"><span>今すぐプレイ</span></a>
+        <a href="#games" class="btn btn-ghost"><span>ゲームを見る</span></a>
+      </div>
+    </div>
+    <div class="hero-side reveal">
+      <span>SCROLL</span>
+      <i></i>
+    </div>
+    <p class="hero-hint reveal">Click the stage to shuffle ♠</p>
+  </section>
+
+  <!-- Marquee -->
+  <div class="marquee" aria-hidden="true">
+    <div class="marquee-track">
+      <span>BLACKJACK ♠ 丁半 ♥ ROULETTE ♦ 花札 ♣ BACCARAT ♠ 紅扇 ♥ POKER ♦ SLOT ♣ </span>
+      <span>BLACKJACK ♠ 丁半 ♥ ROULETTE ♦ 花札 ♣ BACCARAT ♠ 紅扇 ♥ POKER ♦ SLOT ♣ </span>
+    </div>
+  </div>
+
+  <!-- Concept: layered parallax -->
+  <section class="concept" id="concept">
+    <div class="concept-visual" id="concept-visual">
+      <div class="layer layer-sun" data-depth="-40"></div>
+      <div class="layer layer-frame" data-depth="10">
+        <img src="assets/geisha.jpg" alt="トランプを手にした紅い着物の芸妓のイラスト">
+        <div class="frame-shine"></div>
+      </div>
+      <div class="layer layer-card card-a" data-depth="70"><b>A</b><i>♠</i></div>
+      <div class="layer layer-card card-b red" data-depth="55"><b>A</b><i>♥</i></div>
+      <div class="layer layer-chip chip-a" data-depth="90"></div>
+      <div class="layer layer-chip chip-b navy" data-depth="40"></div>
+    </div>
+    <div class="concept-text">
+      <p class="section-no reveal">01 — CONCEPT</p>
+      <h2 class="section-title reveal">一枚の札に、<br>百年の粋を。</h2>
+      <p class="reveal">
+        紅と藍、そして金。<br>
+        花街の夜に咲いた美意識を、現代のテーブルゲームへ。<br>
+        伏し目がちな芸妓が手にするのは、スペードとハートのエース──
+        勝負の行方は、扇の向こうに隠されています。
+      </p>
+      <dl class="stats reveal">
+        <div><dt data-count="24">0</dt><dd>Tables</dd></div>
+        <div><dt data-count="365">0</dt><dd>Nights</dd></div>
+        <div><dt data-count="98">0</dt><dd>% Return*</dd></div>
+      </dl>
+    </div>
+  </section>
+
+  <!-- Games: 3D tilt cards -->
+  <section class="games" id="games">
+    <div class="section-head">
+      <p class="section-no reveal">02 — GAMES</p>
+      <h2 class="section-title reveal">今宵の卓</h2>
+    </div>
+    <div class="game-grid">
+      <article class="game-card reveal" data-tilt>
+        <div class="game-inner">
+          <span class="game-suit">♠</span>
+          <h3>Blackjack</h3>
+          <p class="jp">二十一の舞</p>
+          <p>ディーラーとの一騎打ち。21に最も近い者が夜を制す。</p>
+          <span class="game-tag">MIN 10</span>
+        </div>
+      </article>
+      <article class="game-card red reveal" data-tilt>
+        <div class="game-inner">
+          <span class="game-suit">♥</span>
+          <h3>Roulette</h3>
+          <p class="jp">紅白の輪廻</p>
+          <p>紅か黒か。回る盤上に、ひとつの数字が選ばれる。</p>
+          <span class="game-tag">MIN 5</span>
+        </div>
+      </article>
+      <article class="game-card navy reveal" data-tilt>
+        <div class="game-inner">
+          <span class="game-suit">♦</span>
+          <h3>Baccarat</h3>
+          <p class="jp">王と札師</p>
+          <p>プレイヤーかバンカーか。王侯貴族が愛した優雅な勝負。</p>
+          <span class="game-tag">MIN 50</span>
+        </div>
+      </article>
+      <article class="game-card reveal" data-tilt>
+        <div class="game-inner">
+          <span class="game-suit">♣</span>
+          <h3>Hanafuda</h3>
+          <p class="jp">花札こいこい</p>
+          <p>四季の札を揃える日本の遊戯。月見で一杯、花見で一杯。</p>
+          <span class="game-tag">MIN 20</span>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <!-- Slot machine -->
+  <section class="slot-section" id="slot">
+    <div class="section-head">
+      <p class="section-no reveal">03 — PLAY</p>
+      <h2 class="section-title reveal">紅扇スロット</h2>
+      <p class="section-lead reveal">三つ揃えば大当たり。遊戯用クレジットでお楽しみください。</p>
+    </div>
+    <div class="slot-machine reveal" id="slot-machine">
+      <div class="slot-lights" aria-hidden="true"></div>
+      <div class="slot-top">
+        <span>JACKPOT</span>
+        <strong id="jackpot">77,777</strong>
+      </div>
+      <div class="reels" id="reels">
+        <div class="reel-window"><div class="reel" data-reel="0"></div></div>
+        <div class="reel-window"><div class="reel" data-reel="1"></div></div>
+        <div class="reel-window"><div class="reel" data-reel="2"></div></div>
+        <div class="payline" aria-hidden="true"></div>
+      </div>
+      <p class="slot-msg" id="slot-msg" aria-live="polite">BET 50 でスピン</p>
+      <div class="slot-controls">
+        <button class="bet-btn" id="bet-down" aria-label="ベットを下げる">−</button>
+        <div class="bet-display">BET <span id="bet">50</span></div>
+        <button class="bet-btn" id="bet-up" aria-label="ベットを上げる">＋</button>
+        <button class="spin-btn" id="spin-btn"><span>SPIN</span></button>
+      </div>
+      <ul class="paytable">
+        <li><span>扇 扇 扇</span><b>×50</b></li>
+        <li><span>7 7 7</span><b>×20</b></li>
+        <li><span>♠ ♠ ♠ / ♥ ♥ ♥</span><b>×10</b></li>
+        <li><span>桜 桜 桜</span><b>×5</b></li>
+        <li><span>いずれか2つ揃い</span><b>×2</b></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- VIP -->
+  <section class="vip" id="vip">
+    <div class="vip-card-wrap reveal">
+      <div class="vip-card" id="vip-card">
+        <div class="vip-face vip-front">
+          <span class="vip-logo">紅扇</span>
+          <span class="vip-chip"></span>
+          <span class="vip-num">0777 1225 0000 8888</span>
+          <span class="vip-name">MEMBER OF THE CRIMSON FAN</span>
+        </div>
+        <div class="vip-face vip-back">
+          <img src="assets/geisha.jpg" alt="">
+        </div>
+      </div>
+      <p class="vip-hint">カードにホバー / タップで裏返す</p>
+    </div>
+    <div class="vip-text">
+      <p class="section-no reveal">04 — VIP</p>
+      <h2 class="section-title reveal">選ばれし夜の<br>客人へ。</h2>
+      <ul class="vip-list reveal">
+        <li><span>壱</span>専用ラウンジ「紅の間」へのご招待</li>
+        <li><span>弐</span>季節限定の花札トーナメント</li>
+        <li><span>参</span>コンシェルジュによるお出迎え</li>
+      </ul>
+      <a href="#hero" class="btn btn-gold reveal"><span>会員登録（無料）</span></a>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="footer-logo">紅扇<small>BENI-OUGI ROYAL CASINO</small></div>
+    <p class="disclaimer">
+      ※本サイトはエンターテインメント目的のデモサイトです。実際の金銭を賭けることはできず、
+      クレジットは換金・譲渡できません。※表示の数値は演出上のものです。
+    </p>
+    <p class="copy">&copy; 2026 BENI-OUGI. All rights reserved.</p>
+  </footer>
+
+  <script type="module" src="js/stage.js"></script>
+  <script src="js/casino.js"></script>
+</body>
+</html>
