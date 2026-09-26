@@ -50,8 +50,10 @@ html, body { width: 1080px; height: 1920px; overflow: hidden; background: #000; 
 #s3-big2 { left: 0; top: 1060px; font-size: 330px; white-space: nowrap; color: var(--crimson); font-weight: 900; mix-blend-mode: multiply; }
 #s3-band { right: 58px; top: 300px; width: 200px; height: 1170px; background: rgba(7,8,15,.9);
   box-shadow: 0 30px 80px rgba(0,0,0,.55), inset 0 0 0 2px var(--gold), inset 0 0 0 10px rgba(7,8,15,.9), inset 0 0 0 11px rgba(216,178,90,.6); }
-#s3-vert { right: 110px; top: 360px; writing-mode: vertical-rl; font-size: 92px; color: var(--cream); letter-spacing: .12em; text-shadow: 0 0 18px rgba(0,0,0,.6); }
-#s3-vert span { display: inline-block; }
+#s3-band { display: flex; align-items: center; justify-content: center; }
+#s3-vert { display: flex; flex-direction: column; gap: 12px; margin-top: 50px; font-size: 92px; color: var(--cream); text-shadow: 0 0 18px rgba(0,0,0,.6); }
+/* one fixed 1em cell per character so every glyph sits on the same axis */
+#s3-vert span { display: block; width: 1em; height: 1em; line-height: 1em; writing-mode: vertical-rl; text-align: center; }
 .wipe { left: -660px; top: -340px; width: 2400px; height: 2600px; transform-origin: 50% 50%; }
 
 /* S4 */
@@ -132,8 +134,7 @@ html, body { width: 1080px; height: 1920px; overflow: hidden; background: #000; 
       <div class="abs img" id="s3-face"></div>
       <div class="abs cinzel" id="s3-big">GRACE GRACE GRACE</div>
       <div class="abs cinzel" id="s3-big2">FORTUNE FORTUNE</div>
-      <div class="abs" id="s3-band"></div>
-      <div class="abs mincho" id="s3-vert"></div>
+      <div class="abs" id="s3-band"><div class="mincho" id="s3-vert"></div></div>
       <div class="abs wipe" id="w3" style="background:var(--gold)"></div>
       <div class="abs wipe" id="w2" style="background:var(--indigo)"></div>
       <div class="abs wipe" id="w1" style="background:var(--crimson)"></div>
