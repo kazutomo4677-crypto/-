@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>紅扇 — 15s Motion Reel</title>
+<style>
+@font-face { font-family: "Mincho"; src: url(fonts/mincho.woff2) format("woff2"); font-weight: 800; }
+@font-face { font-family: "Cinzel"; src: url(fonts/cinzel500.woff2) format("woff2"); font-weight: 500; }
+@font-face { font-family: "Cinzel"; src: url(fonts/cinzel900.woff2) format("woff2"); font-weight: 900; }
+:root {
+  --ink: #07080f; --crimson: #d3261c; --crimson-d: #7d110c; --indigo: #16213d;
+  --cream: #efe8d6; --gold: #d8b25a; --gold-l: #f6e3a4; --gold-d: #8f6a22;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { width: 1080px; height: 1920px; overflow: hidden; background: #000; }
+#stage { position: relative; width: 1080px; height: 1920px; overflow: hidden; background: var(--ink); }
+#cam { position: absolute; inset: 0; transform-origin: 50% 50%; }
+.scene { position: absolute; inset: 0; overflow: hidden; display: none; }
+.abs { position: absolute; }
+.center { left: 50%; top: 50%; }
+.img { background: url(assets/geisha.jpg) no-repeat; will-change: transform; }
+.mincho { font-family: "Mincho", serif; font-weight: 800; }
+.cinzel { font-family: "Cinzel", serif; }
+#fx, #flash, #grain, #vig { position: absolute; inset: 0; pointer-events: none; }
+#flash { background: #fff; opacity: 0; mix-blend-mode: normal; }
+#vig { background: radial-gradient(ellipse at 50% 50%, transparent 55%, rgba(0,0,0,.55) 100%); }
+#grain {
+  opacity: .09; mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* S1 */
+#s1-line { left: 0; top: 959px; height: 2px; width: 1080px; background: linear-gradient(90deg, transparent, var(--gold-l), transparent); transform-origin: 50% 50%; }
+#s1-sun { width: 640px; height: 640px; margin: -320px 0 0 -320px; border-radius: 50%;
+  background: radial-gradient(circle at 40% 35%, #ff4b37, var(--crimson) 55%, var(--crimson-d)); box-shadow: 0 0 160px rgba(211,38,28,.6); }
+#s1-ring { width: 640px; height: 640px; margin: -320px 0 0 -320px; border-radius: 50%; border: 3px solid var(--gold); }
+#s1-txt { width: 1080px; left: 0; top: 1360px; text-align: center; color: var(--gold); font-size: 30px; letter-spacing: .5em; }
+
+/* S2 */
+#s2 { background: var(--crimson); }
+#s2-bgk { left: -200px; top: 80px; font-size: 1500px; line-height: 1; color: rgba(0,0,0,.08); white-space: nowrap; }
+.kanji { font-size: 560px; line-height: 1; color: var(--ink); width: 600px; text-align: center; margin-left: -300px; }
+.kanji .half { position: absolute; left: 0; width: 100%; overflow: hidden; }
+.suit { font-size: 120px; line-height: 1; color: var(--cream); width: 120px; height: 120px; margin: -60px 0 0 -60px; text-align: center; }
+#s2-bar { left: 0; width: 1080px; height: 18px; background: var(--ink); }
+
+/* S3 */
+#s3-face { left: 0; top: 0; width: 1080px; height: 1920px; }
+#s3-big { left: 0; top: 620px; font-size: 330px; white-space: nowrap; color: transparent; -webkit-text-stroke: 5px var(--gold-l); font-weight: 900; letter-spacing: .02em; }
+#s3-big2 { left: 0; top: 1060px; font-size: 330px; white-space: nowrap; color: var(--crimson); font-weight: 900; mix-blend-mode: multiply; }
+#s3-vert { right: 90px; top: 360px; writing-mode: vertical-rl; font-size: 92px; color: var(--ink); letter-spacing: .12em; }
+#s3-vert span { display: inline-block; }
+.wipe { left: -660px; top: -340px; width: 2400px; height: 2600px; transform-origin: 50% 50%; }
+
+/* S4 */
+.strip { left: 0; width: 1080px; height: 640px; overflow: hidden; }
+.strip .img { position: absolute; }
+.strip-lab { left: 60px; bottom: 36px; font-size: 34px; letter-spacing: .35em; color: var(--cream); text-shadow: 0 2px 12px rgba(0,0,0,.6); }
+.strip-num { right: 60px; top: 30px; font-size: 120px; color: transparent; -webkit-text-stroke: 2px var(--gold-l); font-weight: 900; }
+.rgb { position: absolute; inset: 0; mix-blend-mode: screen; opacity: 0; }
+
+/* S5 */
+#s5 { background: radial-gradient(ellipse at 50% 55%, #22325c 0%, var(--indigo) 45%, #070a16 100%); }
+#s5-waves { left: 0; top: 0; width: 1080px; height: 1920px; opacity: .35; }
+.card { width: 200px; height: 280px; margin: -140px 0 0 -100px; transform-style: preserve-3d; }
+.card .face, .card .back { position: absolute; inset: 0; border-radius: 14px; backface-visibility: hidden; overflow: hidden; }
+.card .face { background: #fbf8ef; box-shadow: 0 30px 60px rgba(0,0,0,.55); }
+.card .face .img { position: absolute; }
+.card .face .rank { position: absolute; left: 14px; top: 10px; font-size: 44px; line-height: 1; font-weight: 900; }
+.card .face .pip { position: absolute; left: 0; right: 0; top: 70px; text-align: center; font-size: 130px; line-height: 1; }
+.card .face .art { position: absolute; inset: 0; opacity: 0; }
+.card .back { transform: rotateY(180deg); background: var(--crimson-d); border: 6px solid var(--gold); box-shadow: 0 30px 60px rgba(0,0,0,.55); }
+.card .back::after { content: "紅"; position: absolute; left: 50%; top: 50%; width: 90px; height: 90px; margin: -45px 0 0 -45px; border-radius: 50%;
+  background: var(--ink); border: 2px solid var(--gold); color: var(--gold-l); font: 800 52px/86px "Mincho", serif; text-align: center; }
+.red { color: var(--crimson); } .blk { color: var(--ink); }
+#s5-title { left: 0; width: 1080px; top: 330px; text-align: center; color: var(--gold-l); font-size: 64px; letter-spacing: .3em; font-weight: 900; }
+#s5-sub { left: 0; width: 1080px; top: 1500px; text-align: center; color: var(--cream); font-size: 50px; letter-spacing: .4em; }
+
+/* S6 */
+#s6 { background: var(--ink); perspective: 1800px; }
+#s6-sun { width: 1000px; height: 1000px; left: 40px; top: 360px; border-radius: 50%;
+  background: radial-gradient(circle at 40% 35%, #ff4b37, var(--crimson) 55%, var(--crimson-d)); }
+#s6-panel { left: 190px; top: 460px; width: 700px; height: 1050px; transform-style: preserve-3d; }
+#s6-panel .frame { position: absolute; inset: -16px; background: linear-gradient(135deg, var(--gold-l), var(--gold) 40%, var(--gold-d)); box-shadow: 0 80px 120px rgba(0,0,0,.7); }
+#s6-panel .art { position: absolute; inset: 0; background: url(assets/geisha.jpg) center / cover; }
+#s6-panel .shine { position: absolute; inset: 0; background: linear-gradient(115deg, transparent 35%, rgba(255,255,255,.35) 50%, transparent 65%); background-size: 300% 100%; }
+.kin { left: 70px; font-size: 118px; line-height: 1; color: var(--cream); font-weight: 900; white-space: nowrap; }
+.kin.gold { color: var(--gold-l); }
+
+/* S7 */
+#s7 { background: var(--ink); }
+#s7-mark { width: 460px; height: 460px; margin: -230px 0 0 -230px; border-radius: 50%; background: radial-gradient(circle at 40% 35%, #ff4b37, var(--crimson) 55%, var(--crimson-d)); }
+#s7-ring { width: 520px; height: 520px; margin: -260px 0 0 -260px; border-radius: 50%; border: 3px solid var(--gold); }
+#s7-logo { width: 460px; margin-left: -230px; margin-top: -150px; text-align: center; font-size: 180px; line-height: 300px; color: var(--cream); letter-spacing: -.02em; white-space: nowrap; }
+#s7-logo span { display: inline-block; }
+#s7-en { left: 0; width: 1080px; top: 1300px; text-align: center; font-size: 76px; letter-spacing: .28em; font-weight: 900;
+  background: linear-gradient(100deg, var(--gold-d) 0%, var(--gold) 35%, #fffbe8 50%, var(--gold) 65%, var(--gold-d) 100%); background-size: 300% 100%;
+  -webkit-background-clip: text; background-clip: text; color: transparent; }
+#s7-sub { left: 0; width: 1080px; top: 1410px; text-align: center; font-size: 26px; letter-spacing: .8em; color: var(--gold); }
+#s7-tag { left: 0; width: 1080px; top: 1560px; text-align: center; font-size: 60px; letter-spacing: .3em; color: var(--cream); }
+#s7-tag span { display: inline-block; }
+#s7-rule { left: 340px; width: 400px; top: 1490px; height: 2px; background: var(--gold); }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="cam">
+    <!-- S1: ignition -->
+    <section class="scene" id="s1">
+      <div class="abs" id="s1-line"></div>
+      <div class="abs center" id="s1-ring"></div>
+      <div class="abs center" id="s1-sun"></div>
+      <div class="abs cinzel" id="s1-txt">BENI-OUGI&nbsp;PRESENTS</div>
+    </section>
+
+    <!-- S2: kanji slam -->
+    <section class="scene" id="s2">
+      <div class="abs mincho" id="s2-bgk">紅扇紅扇</div>
+      <div class="abs kanji mincho" id="k1" style="left:540px;top:330px;height:560px"></div>
+      <div class="abs kanji mincho" id="k2" style="left:540px;top:1000px;height:560px"></div>
+      <div class="abs suit center" data-s="0">♠</div>
+      <div class="abs suit center" data-s="1">♥</div>
+      <div class="abs suit center" data-s="2">♦</div>
+      <div class="abs suit center" data-s="3">♣</div>
+      <div class="abs" id="s2-bar"></div>
+    </section>
+
+    <!-- S3: face reveal -->
+    <section class="scene" id="s3">
+      <div class="abs img" id="s3-face"></div>
+      <div class="abs cinzel" id="s3-big">GRACE GRACE GRACE</div>
+      <div class="abs cinzel" id="s3-big2">FORTUNE FORTUNE</div>
+      <div class="abs mincho" id="s3-vert"></div>
+      <div class="abs wipe" id="w3" style="background:var(--gold)"></div>
+      <div class="abs wipe" id="w2" style="background:var(--indigo)"></div>
+      <div class="abs wipe" id="w1" style="background:var(--crimson)"></div>
+    </section>
+
+    <!-- S4: beat cuts -->
+    <section class="scene" id="s4"></section>
+
+    <!-- S5: card fan -->
+    <section class="scene" id="s5">
+      <canvas class="abs" id="s5-waves" width="1080" height="1920"></canvas>
+      <div class="abs cinzel" id="s5-title">DEAL&nbsp;THE&nbsp;NIGHT</div>
+      <div class="abs mincho" id="s5-sub">五枚の運命</div>
+      <div id="cards" style="position:absolute;inset:0;perspective:1600px"></div>
+    </section>
+
+    <!-- S6: hero -->
+    <section class="scene" id="s6">
+      <div class="abs" id="s6-sun"></div>
+      <div class="abs" id="s6-panel"><div class="frame"></div><div class="art"></div><div class="shine"></div></div>
+      <div class="abs kin cinzel" id="kin1" style="top:180px">FORTUNE</div>
+      <div class="abs kin cinzel gold" id="kin2" style="top:300px">FAVORS</div>
+      <div class="abs kin cinzel" id="kin3" style="top:1590px">THE GRACEFUL</div>
+    </section>
+
+    <!-- S7: logo -->
+    <section class="scene" id="s7">
+      <div class="abs center" id="s7-ring"></div>
+      <div class="abs center" id="s7-mark"></div>
+      <div class="abs center mincho" id="s7-logo"><span>紅</span><span>扇</span></div>
+      <div class="abs cinzel" id="s7-en">BENI-OUGI</div>
+      <div class="abs" id="s7-rule"></div>
+      <div class="abs cinzel" id="s7-sub">ROYAL CASINO</div>
+      <div class="abs mincho" id="s7-tag"></div>
+    </section>
+  </div>
+  <canvas id="fx" width="1080" height="1920"></canvas>
+  <div id="vig"></div>
+  <div id="grain"></div>
+  <div id="flash"></div>
+</div>
+
+<script>
+// =====================================================================
+//  Deterministic motion timeline. render(t) paints the frame at time t
+//  (seconds) from scratch, so the renderer can capture any frame in any
+//  order. 120 BPM → one beat = 0.5s; cuts and hits land on the grid.
+// =====================================================================
+const W = 1080, H = 1920, IMG_W = 896, IMG_H = 1344;
+const $ = (s) => document.querySelector(s);
+const $$ = (s) => [...document.querySelectorAll(s)];
+
+// ---------- math / easing ----------
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const P = (t, a, b) => clamp((t - a) / (b - a));
+const lerp = (a, b, k) => a + (b - a) * k;
+const E = {
+  outCubic: (x) => 1 - Math.pow(1 - x, 3),
+  inCubic: (x) => x * x * x,
+  inOutCubic: (x) => (x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2),
+  outExpo: (x) => (x === 1 ? 1 : 1 - Math.pow(2, -10 * x)),
+  inExpo: (x) => (x === 0 ? 0 : Math.pow(2, 10 * x - 10)),
+  inOutExpo: (x) => x === 0 ? 0 : x === 1 ? 1 : x < .5 ? Math.pow(2, 20 * x - 10) / 2 : (2 - Math.pow(2, -20 * x + 10)) / 2,
+  outBack: (x, s = 1.70158) => 1 + (s + 1) * Math.pow(x - 1, 3) + s * Math.pow(x - 1, 2),
+  outElastic: (x) => x === 0 ? 0 : x === 1 ? 1 : Math.pow(2, -10 * x) * Math.sin((x * 10 - .75) * (2 * Math.PI) / 3) + 1,
+  outQuint: (x) => 1 - Math.pow(1 - x, 5),
+};
+// deterministic PRNG
+function rng(seed) { return () => ((seed = (seed * 16807) % 2147483647) - 1) / 2147483646; }
+
+// position an image layer so that normalized image point (cx,cy) sits at
+// the container centre with `zoom` × cover scale
+function crop(el, w, h, cx, cy, zoom, ox = 0, oy = 0) {
+  const s = Math.max(w / IMG_W, h / IMG_H) * zoom;
+  const bw = IMG_W * s, bh = IMG_H * s;
+  let x = w / 2 - cx * bw + ox, y = h / 2 - cy * bh + oy;
+  x = clamp(x, w - bw, 0); y = clamp(y, h - bh, 0);
+  el.style.width = bw + "px"; el.style.height = bh + "px";
+  el.style.backgroundSize = "100% 100%";
+  el.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+}
+const show = (id, on) => { $(id).style.display = on ? "block" : "none"; };
+const tf = (el, s) => { el.style.transform = s; };
+
+// ---------- global cues (seconds) ----------
+const HITS = [0.5, 1.8, 2.3, 3.0, 5.0, 5.5, 6.0, 6.5, 7.0, 7.5, 8.5, 9.5, 10.0, 12.5, 13.5];
+function shakeAt(t) {
+  let a = 0;
+  for (const h of HITS) { const d = t - h; if (d >= 0 && d < .35) a += (1 - d / .35) ** 2 * (h === 13.5 || h === 1.8 ? 26 : 12); }
+  return a;
+}
+
+// ---------- build dynamic DOM ----------
+// S2 kanji split into two halves each so they can shear apart
+[["#k1", "紅"], ["#k2", "扇"]].forEach(([id, ch]) => {
+  $(id).innerHTML = `<div class="half" style="top:0;height:280px"><div style="height:560px">${ch}</div></div>` +
+    `<div class="half" style="top:280px;height:280px"><div style="height:560px;margin-top:-280px">${ch}</div></div>`;
+});
+$("#s3-vert").innerHTML = [..."伏し目に、勝機あり。"].map((c) => `<span>${c}</span>`).join("");
+$("#s7-tag").innerHTML = [..."運命を、賭けて。"].map((c) => `<span>${c}</span>`).join("");
+
+// S4 strips: three detail crops of the illustration
+const STRIPS = [
+  { cx: .50, cy: .115, z: 2.6, lab: "KANZASHI", n: "01", dir: -1 },
+  { cx: .20, cy: .435, z: 2.9, lab: "THE HAND", n: "02", dir: 1 },
+  { cx: .56, cy: .56, z: 2.3, lab: "KIMONO", n: "03", dir: -1 },
+];
+$("#s4").innerHTML = STRIPS.map((s, i) => `
+  <div class="abs strip" id="st${i}" style="top:${i * 640}px">
+    <div class="img" id="sti${i}"></div>
+    <div class="rgb img" id="str${i}"></div>
+    <div class="abs strip-lab cinzel">${s.lab}</div>
+    <div class="abs strip-num cinzel">${s.n}</div>
+  </div>`).join("");
+
+// S5 cards
+const CARDS = [["A", "♠", "blk"], ["K", "♥", "red"], ["A", "♥", "red"], ["Q", "♦", "red"], ["J", "♣", "blk"]];
+$("#cards").innerHTML = CARDS.map(([r, s, c], i) => `
+  <div class="abs card" id="c${i}">
+    <div class="face"><div class="rank cinzel ${c}">${r}</div><div class="pip ${c}">${s}</div><div class="art"><div class="img" id="ci${i}"></div></div></div>
+    <div class="back"></div>
+  </div>`).join("");
+
+// ---------- FX canvas (particles) ----------
+const fx = $("#fx").getContext("2d");
+const DUST = (() => { const r = rng(7); return Array.from({ length: 180 }, () => ({ x: r() * W, y: r() * H, s: .6 + r() * 2.4, v: 20 + r() * 60, ph: r() * 6.28, d: r() })); })();
+const BURST = (() => { const r = rng(11); return Array.from({ length: 140 }, () => ({ a: r() * 6.283, v: 400 + r() * 1300, s: 1 + r() * 4, drag: 1.5 + r() * 2 })); })();
+const CHIPS = (() => { const r = rng(23); return Array.from({ length: 16 }, (_, i) => ({ x: r() * W, delay: r() * .8, v: 900 + r() * 900, rot: r() * 6, spin: (r() - .5) * 12, size: 50 + r() * 60, col: ["#d3261c", "#16213d", "#0b0c14", "#d8b25a"][i % 4], flip: 3 + r() * 8 })); })();
+
+function burst(t, t0, cx, cy, color, scale = 1) {
+  const d = t - t0; if (d < 0 || d > 1.6) return;
+  BURST.forEach((p) => {
+    const dist = p.v * (1 - Math.exp(-p.drag * d)) / p.drag * scale;
+    const x = cx + Math.cos(p.a) * dist, y = cy + Math.sin(p.a) * dist + 120 * d * d;
+    const a = clamp(1 - d / 1.4);
+    fx.globalAlpha = a; fx.fillStyle = color;
+    fx.beginPath(); fx.arc(x, y, p.s * (1 - d * .4), 0, 6.283); fx.fill();
+    // streak
+    fx.globalAlpha = a * .35; fx.strokeStyle = color; fx.lineWidth = p.s * .6;
+    const back = p.v * Math.exp(-p.drag * d) * .03 * scale;
+    fx.beginPath(); fx.moveTo(x, y); fx.lineTo(x - Math.cos(p.a) * back, y - Math.sin(p.a) * back); fx.stroke();
+  });
+  fx.globalAlpha = 1;
+}
+function dust(t, alpha, color = "246,227,164") {
+  if (alpha <= 0) return;
+  DUST.forEach((p) => {
+    const y = ((p.y - p.v * t) % H + H) % H, x = p.x + Math.sin(t * .8 + p.ph) * 18;
+    const tw = .45 + .55 * Math.abs(Math.sin(t * 2.2 + p.ph * 3));
+    fx.globalAlpha = alpha * tw * (.3 + p.d * .7);
+    const g = fx.createRadialGradient(x, y, 0, x, y, p.s * 4);
+    g.addColorStop(0, `rgba(${color},1)`); g.addColorStop(1, `rgba(${color},0)`);
+    fx.fillStyle = g; fx.beginPath(); fx.arc(x, y, p.s * 4, 0, 6.283); fx.fill();
+  });
+  fx.globalAlpha = 1;
+}
+function chips(t, t0) {
+  const d = t - t0; if (d < 0) return;
+  CHIPS.forEach((c) => {
+    const k = d - c.delay; if (k < 0) return;
+    const y = -120 + c.v * k + 500 * k * k; if (y > H + 150) return;
+    const sq = Math.abs(Math.cos(k * c.flip + c.rot));
+    fx.save(); fx.translate(c.x, y); fx.rotate(c.rot + c.spin * k); fx.scale(1, .25 + sq * .75);
+    // motion smear
+    fx.globalAlpha = .25; fx.fillStyle = c.col;
+    fx.beginPath(); fx.ellipse(0, -c.size * .5, c.size * .5, c.size * .9, 0, 0, 6.283); fx.fill();
+    fx.globalAlpha = 1;
+    fx.fillStyle = c.col; fx.beginPath(); fx.arc(0, 0, c.size * .5, 0, 6.283); fx.fill();
+    fx.strokeStyle = "#efe8d6"; fx.lineWidth = c.size * .12; fx.setLineDash([c.size * .18, c.size * .14]);
+    fx.beginPath(); fx.arc(0, 0, c.size * .42, 0, 6.283); fx.stroke(); fx.setLineDash([]);
+    fx.strokeStyle = "#d8b25a"; fx.lineWidth = 2; fx.beginPath(); fx.arc(0, 0, c.size * .28, 0, 6.283); fx.stroke();
+    fx.restore();
+  });
+}
+function shockRing(t, t0, cx, cy, r0, r1, color, w = 6) {
+  const d = P(t, t0, t0 + .7); if (d <= 0 || d >= 1) return;
+  fx.globalAlpha = 1 - d; fx.strokeStyle = color; fx.lineWidth = w * (1 - d) + .5;
+  fx.beginPath(); fx.arc(cx, cy, lerp(r0, r1, E.outExpo(d)), 0, 6.283); fx.stroke(); fx.globalAlpha = 1;
+}
+function speedLines(t, a, b, color) {
+  const k = P(t, a, b); if (k <= 0 || k >= 1) return;
+  const r = rng(99);
+  fx.strokeStyle = color;
+  for (let i = 0; i < 40; i++) {
+    const y = r() * H, len = 300 + r() * 900, sp = 3000 + r() * 3000;
+    const x = -len + ((t - a) * sp + r() * W * 2) % (W + len * 2);
+    fx.globalAlpha = Math.sin(k * Math.PI) * (.15 + r() * .35); fx.lineWidth = 1 + r() * 3;
+    fx.beginPath(); fx.moveTo(x, y); fx.lineTo(x + len, y); fx.stroke();
+  }
+  fx.globalAlpha = 1;
+}
+
+// S5 seigaiha wave pattern (drawn per frame, drifting)
+const waves = $("#s5-waves").getContext("2d");
+function drawWaves(t, k) {
+  waves.clearRect(0, 0, W, H);
+  waves.strokeStyle = "rgba(216,178,90,.6)"; waves.lineWidth = 2;
+  const R = 60, off = (t * 40) % (R * 2);
+  for (let row = -1, y = -R; y < H + R; y += R * .5, row++) {
+    for (let x = (row % 2 ? 0 : R) - off; x < W + R * 2; x += R * 2) {
+      const reveal = clamp(k * 2.2 - (y / H) * 1.2);
+      if (reveal <= 0) continue;
+      for (let rr = R; rr > 8; rr -= 14) { waves.beginPath(); waves.arc(x, y, rr * reveal, Math.PI, 0); waves.stroke(); }
+    }
+  }
+}
+
+// ---------- RENDER ----------
+function render(t) {
+  fx.clearRect(0, 0, W, H);
+  const sc = ["#s1", "#s2", "#s3", "#s4", "#s5", "#s6", "#s7"];
+  const ranges = [[0, 1.5], [1.5, 3.0], [3.0, 5.0], [5.0, 7.5], [7.5, 10.0], [10.0, 12.5], [12.5, 15.01]];
+  sc.forEach((id, i) => show(id, t >= ranges[i][0] && t < ranges[i][1]));
+  let flash = 0;
+
+  // ===== S1 · Ignition (0 – 1.5) =====
+  if (t < 1.5) {
+    const ln = E.outExpo(P(t, .05, .45)), col = E.inExpo(P(t, .38, .5));
+    tf($("#s1-line"), `scaleX(${ln * (1 - col)}) scaleY(${1 + col * 2})`);
+    $("#s1-line").style.opacity = 1 - P(t, .48, .52);
+    const sp = P(t, .5, 1.1);
+    const s = t < .5 ? 0 : E.outElastic(sp) * lerp(1, 1.08, P(t, 1.1, 1.5));
+    tf($("#s1-sun"), `scale(${s})`);
+    // exit: sun expands to swallow frame
+    const ex = E.inExpo(P(t, 1.2, 1.5));
+    if (ex > 0) tf($("#s1-sun"), `scale(${s + ex * 4.2})`);
+    const rg = P(t, .5, 1.2);
+    tf($("#s1-ring"), `scale(${.3 + E.outExpo(rg) * 1.2}) rotate(${t * 40}deg)`);
+    $("#s1-ring").style.opacity = t < .5 ? 0 : (1 - rg) * .9 + .1 * (1 - ex);
+    const tx = P(t, .6, 1.2);
+    $("#s1-txt").style.opacity = E.outCubic(tx) * (1 - ex);
+    $("#s1-txt").style.letterSpacing = lerp(1.4, .5, E.outExpo(tx)) + "em";
+    burst(t, .5, 540, 960, "#f6e3a4", 1);
+    shockRing(t, .5, 540, 960, 100, 900, "#f6e3a4", 8);
+    dust(t, P(t, .6, 1.2) * .6);
+    if (t >= .5 && t < .56) flash = .5;
+  }
+
+  // ===== S2 · Kanji slam (1.5 – 3.0) =====
+  if (t >= 1.5 && t < 3.0) {
+    tf($("#s2-bgk"), `translateX(${-(t - 1.5) * 260}px)`);
+    const slam = (el, t0) => {
+      const k = P(t, t0, t0 + .22);
+      const s = lerp(3.4, 1, E.outExpo(k));
+      el.style.opacity = t < t0 ? 0 : 1;
+      el.style.filter = `blur(${(1 - k) * 18}px)`;
+      return s;
+    };
+    const s1 = slam($("#k1"), 1.62), s2 = slam($("#k2"), 2.12);
+    // split halves apart at the out
+    const sp = E.inExpo(P(t, 2.7, 3.0));
+    [["#k1", s1, -1], ["#k2", s2, 1]].forEach(([id, s, dir]) => {
+      tf($(id), `scale(${s}) rotate(${dir * lerp(-8, 0, E.outBack(P(t, id === "#k1" ? 1.62 : 2.12, id === "#k1" ? 1.95 : 2.45)))}deg)`);
+      const halves = $(id).querySelectorAll(".half");
+      tf(halves[0], `translateX(${-sp * 1300}px) skewX(${sp * -20}deg)`);
+      tf(halves[1], `translateX(${sp * 1300}px) skewX(${sp * 20}deg)`);
+    });
+    // suits orbit
+    $$(".suit").forEach((el, i) => {
+      const a = (i / 4) * 6.283 + (t - 1.5) * 2.4;
+      const r = lerp(900, 430, E.outExpo(P(t, 1.5, 2.1))) + sp * 800;
+      const x = 540 + Math.cos(a) * r, y = 960 + Math.sin(a) * r * 1.5;
+      tf(el, `translate(${x - 540}px, ${y - 960}px) rotate(${a * 57 + 90}deg) scale(${1 + Math.sin(t * 6 + i) * .08})`);
+      el.style.color = i % 2 ? "#07080f" : "#efe8d6";
+    });
+    const bar = E.inOutExpo(P(t, 1.5, 2.9));
+    $("#s2-bar").style.top = lerp(-40, 1960, bar) + "px";
+    burst(t, 1.8, 540, 610, "#07080f", .8);
+    burst(t, 2.3, 540, 1280, "#efe8d6", .8);
+    if (t >= 1.8 && t < 1.85) flash = .35;
+    speedLines(t, 2.7, 3.0, "#efe8d6");
+  }
+
+  // ===== S3 · Face reveal (3.0 – 5.0) =====
+  if (t >= 3.0 && t < 5.0) {
+    const k = P(t, 3.0, 5.0);
+    const zin = E.outExpo(P(t, 3.0, 3.6));
+    crop($("#s3-face"), W, H, lerp(.47, .44, k), lerp(.24, .27, k), lerp(4.2, 2.2, E.inOutCubic(k)) + (1 - zin) * 1.5, 0, 0);
+    // three coloured wipes cover in, then leave on a diagonal
+    [["#w1", 0], ["#w2", .06], ["#w3", .12]].forEach(([id, dly], i) => {
+      const out = E.inOutExpo(P(t, 3.0 + dly, 3.45 + dly));
+      tf($(id), `rotate(-28deg) translateY(${-2900 * out}px)`);
+    });
+    tf($("#s3-big"), `translateX(${lerp(200, -1800, k)}px)`);
+    tf($("#s3-big2"), `translateX(${lerp(-1500, 100, k)}px)`);
+    $("#s3-big").style.opacity = P(t, 3.3, 3.6);
+    $("#s3-big2").style.opacity = P(t, 3.4, 3.7) * .9;
+    $$("#s3-vert span").forEach((sp, i) => {
+      const c = E.outBack(P(t, 3.55 + i * .07, 3.85 + i * .07));
+      sp.style.opacity = clamp(c);
+      tf(sp, `translateY(${(1 - c) * -60}px) scale(${lerp(1.8, 1, c)})`);
+      sp.style.filter = `blur(${(1 - clamp(c)) * 10}px)`;
+    });
+    // out: iris-close to black stripe
+    dust(t, .5);
+    if (t >= 4.85) flash = P(t, 4.85, 5.0) * .9;
+  }
+
+  // ===== S4 · Beat cuts (5.0 – 7.5) =====
+  if (t >= 5.0 && t < 7.5) {
+    STRIPS.forEach((s, i) => {
+      const t0 = 5.0 + i * .5;
+      const k = E.outExpo(P(t, t0, t0 + .35));
+      const el = $(`#st${i}`);
+      el.style.display = t >= t0 ? "block" : "none";
+      // swap shuffle at 6.5, collapse at 7.0
+      const sh = E.inOutExpo(P(t, 6.5, 6.8));
+      const col = E.inExpo(P(t, 7.0, 7.45));
+      const x = (1 - k) * s.dir * W + sh * s.dir * -W * .18;
+      tf(el, `translateX(${x}px) scaleY(${1 - col})`);
+      const drift = (t - t0) * 40 * s.dir;
+      crop($(`#sti${i}`), W, 640, s.cx, s.cy, s.z * lerp(1.25, 1, k) * (1 + sh * .25), drift, 0);
+      // chromatic offset on hits
+      const hit = Math.max(0, 1 - Math.abs(t - t0) / .12, 1 - Math.abs(t - 6.5) / .12, 1 - Math.abs(t - 7.0) / .12);
+      const r = $(`#str${i}`);
+      r.style.opacity = hit * .55;
+      crop(r, W, 640, s.cx, s.cy, s.z * lerp(1.25, 1, k) * (1 + sh * .25), drift + hit * 28, 0);
+      r.style.filter = `sepia(1) saturate(8) hue-rotate(-50deg)`;
+      el.querySelector(".strip-lab").style.opacity = P(t, t0 + .15, t0 + .4);
+      tf(el.querySelector(".strip-num"), `translateY(${(1 - E.outBack(P(t, t0 + .1, t0 + .45))) * 160}px)`);
+    });
+    [5.0, 5.5, 6.0, 6.5, 7.0].forEach((h) => { if (t >= h && t < h + .045) flash = .28; });
+    speedLines(t, 6.45, 6.85, "#f6e3a4");
+  }
+
+  // ===== S5 · Card fan (7.5 – 10.0) =====
+  if (t >= 7.5 && t < 10.0) {
+    const k = P(t, 7.5, 10);
+    drawWaves(t, P(t, 7.5, 8.4));
+    $("#s5-title").style.opacity = P(t, 7.9, 8.2) * (1 - P(t, 9.55, 9.75));
+    $("#s5-title").style.letterSpacing = lerp(.8, .3, E.outExpo(P(t, 7.9, 8.6))) + "em";
+    $("#s5-sub").style.opacity = P(t, 8.6, 8.9) * (1 - P(t, 9.55, 9.75));
+    const BAND_W = 1000, cardW = 200, cardH = 280;
+    CARDS.forEach((_, i) => {
+      const el = $(`#c${i}`);
+      const t0 = 7.55 + i * .08;
+      const fly = E.outExpo(P(t, t0, t0 + .6));
+      // fan pose
+      const fanA = (i - 2) * 16, fanR = 700;
+      const fx0 = Math.sin(fanA * Math.PI / 180) * fanR, fy0 = -Math.cos(fanA * Math.PI / 180) * fanR + fanR;
+      // row pose (mosaic band) at 9.5
+      const row = E.inOutExpo(P(t, 9.35, 9.8));
+      const rx = (i - 2) * cardW * 1.08, ry = 0;
+      const x = lerp(lerp((i - 2) * 60, fx0, fly), rx, row);
+      const y = lerp(lerp(1400, fy0 + 40, fly), ry, row);
+      const rot = lerp(lerp(90 - i * 40, fanA, fly), 0, row);
+      // flip: back (180) → face (0) during fly, then face shows art at 8.5
+      const flip = lerp(180 + 360, 0, E.outCubic(P(t, t0, t0 + .75)));
+      const sc = lerp(1.4, 1.08, row) * (1 + Math.max(0, 1 - Math.abs(t - 8.5) / .15) * .06);
+      tf(el, `translate(${540 + x}px, ${960 + y}px) rotate(${rot}deg) rotateY(${flip}deg) scale(${sc})`);
+      el.style.left = "0px"; el.style.top = "0px";
+      // artwork slice
+      const art = el.querySelector(".art");
+      const reveal = E.inOutCubic(P(t, 8.45 + i * .06, 8.75 + i * .06));
+      art.style.opacity = reveal;
+      art.style.clipPath = `inset(${(1 - reveal) * 100}% 0 0 0)`;
+      const bandScale = BAND_W / IMG_W, bh = IMG_H * bandScale;
+      const img = $(`#ci${i}`);
+      img.style.width = BAND_W + "px"; img.style.height = bh + "px"; img.style.backgroundSize = "100% 100%";
+      tf(img, `translate(${-i * cardW}px, ${-(bh * .44 - cardH / 2)}px)`);
+      const radius = lerp(14, 0, row); el.querySelectorAll(".face,.back").forEach((f) => (f.style.borderRadius = radius + "px"));
+    });
+    chips(t, 8.5);
+    shockRing(t, 8.5, 540, 1100, 80, 700, "#f6e3a4", 5);
+    dust(t, .55);
+    if (t >= 8.5 && t < 8.55) flash = .3;
+  }
+
+  // ===== S6 · Hero panel (10.0 – 12.5) =====
+  if (t >= 10.0 && t < 12.5) {
+    const k = P(t, 10, 12.5);
+    const grow = E.outExpo(P(t, 10.0, 10.7));
+    // grows from the card band (1350×378 region) to full panel
+    const ry = lerp(0, -18, E.inOutCubic(k)) + Math.sin(k * 3) * 4;
+    const rx = lerp(8, -4, E.inOutCubic(k));
+    tf($("#s6-panel"), `translateZ(${lerp(-200, 60, E.inOutCubic(k))}px) rotateY(${ry}deg) rotateX(${rx}deg) translateX(${lerp(0, 90, E.inOutCubic(P(t, 10.4, 11.4)))}px)`);
+    $("#s6-panel").style.clipPath = `inset(${lerp(37, 0, grow)}% ${lerp(-10, 0, grow)}% ${lerp(37, 0, grow)}% ${lerp(-10, 0, grow)}%)`;
+    $("#s6-panel .shine").style.backgroundPosition = `${lerp(120, -40, P(t, 10.7, 11.7))}% 0`;
+    tf($("#s6-sun"), `scale(${E.outBack(P(t, 10.3, 10.9)) * lerp(1, 1.06, k)}) translate(${lerp(40, -40, k)}px, ${lerp(30, -30, k)}px)`);
+    ["#kin1", "#kin2", "#kin3"].forEach((id, i) => {
+      const t0 = 10.6 + i * .25;
+      const m = E.outExpo(P(t, t0, t0 + .5));
+      const el = $(id);
+      el.style.clipPath = `inset(0 ${(1 - m) * 100}% 0 0)`;
+      tf(el, `translateX(${(1 - m) * -80 + (t - t0) * 30}px)`);
+    });
+    dust(t, .8);
+    // exit: whole panel zooms into the sun → logo
+    const ex = E.inExpo(P(t, 12.1, 12.5));
+    tf($("#s6"), `scale(${1 + ex * .9})`); $("#s6").style.opacity = 1;
+    if (t >= 12.38) flash = P(t, 12.38, 12.5);
+  }
+
+  // ===== S7 · Logo (12.5 – 15.0) =====
+  if (t >= 12.5) {
+    const m = E.outElastic(P(t, 12.5, 13.3));
+    tf($("#s7-mark"), `translateY(-200px) scale(${m})`);
+    const rg = E.outExpo(P(t, 12.6, 13.2));
+    tf($("#s7-ring"), `translateY(-200px) scale(${lerp(.6, 1, rg)}) rotate(${t * 30}deg)`);
+    $("#s7-ring").style.opacity = rg;
+    $("#s7-ring").style.borderStyle = "dashed";
+    $$("#s7-logo span").forEach((sp, i) => {
+      const c = P(t, 12.75 + i * .12, 13.2 + i * .12);
+      sp.style.opacity = clamp(c * 2);
+      tf(sp, `translateY(${(1 - E.outBack(c, 2.2)) * 120}px) scale(${lerp(1.6, 1, E.outExpo(c))})`);
+      sp.style.filter = `blur(${(1 - E.outExpo(c)) * 14}px)`;
+    });
+    tf($("#s7-logo"), `translateY(-200px)`);
+    const en = E.outExpo(P(t, 13.2, 13.8));
+    $("#s7-en").style.opacity = en;
+    $("#s7-en").style.letterSpacing = lerp(.8, .28, en) + "em";
+    $("#s7-en").style.backgroundPosition = `${lerp(110, -10, P(t, 13.6, 14.6))}% 0`;
+    tf($("#s7-rule"), `scaleX(${E.inOutExpo(P(t, 13.4, 13.9))})`);
+    $("#s7-sub").style.opacity = P(t, 13.6, 14.0);
+    $$("#s7-tag span").forEach((sp, i) => {
+      const c = E.outCubic(P(t, 13.9 + i * .06, 14.3 + i * .06));
+      sp.style.opacity = c; tf(sp, `translateY(${(1 - c) * 40}px)`);
+    });
+    burst(t, 12.5, 540, 760, "#f6e3a4", 1.2);
+    shockRing(t, 12.5, 540, 760, 200, 1100, "#d3261c", 14);
+    shockRing(t, 13.5, 540, 760, 240, 800, "#f6e3a4", 4);
+    burst(t, 13.5, 540, 1330, "#d8b25a", .6);
+    dust(t, .7);
+    // end fade
+    $("#stage").style.filter = `brightness(${1 - P(t, 14.75, 15.0)})`;
+  } else $("#stage").style.filter = "";
+
+  // camera shake + subtle breathing zoom
+  const sh = shakeAt(t);
+  const r = rng(Math.floor(t * 60) + 1);
+  tf($("#cam"), `translate(${(r() - .5) * sh}px, ${(r() - .5) * sh}px) rotate(${(r() - .5) * sh * .02}deg) scale(${1 + sh * .0015})`);
+  $("#flash").style.opacity = flash;
+  $("#grain").style.backgroundPosition = `${(Math.floor(t * 24) * 73) % 300}px ${(Math.floor(t * 24) * 131) % 300}px`;
+}
+
+window.render = render;
+window.DURATION = 15;
+// live preview when opened in a browser directly
+if (!location.search.includes("capture")) {
+  const t0 = performance.now();
+  (function loop() { render(((performance.now() - t0) / 1000) % 15); requestAnimationFrame(loop); })();
+}
+</script>
+</body>
+</html>
