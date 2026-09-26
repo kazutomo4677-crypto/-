@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>夕暮れの、ふしぎ売り — 予告</title>
+<style>
+@font-face { font-family: "Klee"; src: url(fonts/klee600.woff2) format("woff2"); font-weight: 600; }
+@font-face { font-family: "ZenOld"; src: url(fonts/zenold700.woff2) format("woff2"); font-weight: 700; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { width: 1920px; height: 1080px; overflow: hidden; background: #000; }
+#stage { position: relative; width: 1920px; height: 1080px; overflow: hidden; background: #1a1210; }
+#cam { position: absolute; inset: 0; transform-origin: 50% 50%; }
+canvas { position: absolute; left: 0; top: 0; }
+.sp { position: absolute; left: 0; top: 0; transform-origin: 50% 50%; display: none; will-change: transform; }
+.txt { position: absolute; font-family: "Klee", serif; font-weight: 600; color: #fff6e6; white-space: nowrap; }
+#sub { left: 0; width: 1920px; top: 900px; text-align: center; font-size: 54px; letter-spacing: .08em;
+  text-shadow: 0 2px 4px rgba(40,20,10,.8), 0 0 24px rgba(40,20,10,.55); }
+#sub span { opacity: 0; }
+#narr { left: 150px; top: 760px; font-size: 50px; letter-spacing: .12em; text-shadow: 0 2px 16px rgba(40,20,10,.7); }
+#onoma { font-family: "ZenOld", serif; font-weight: 700; font-size: 190px; color: #fffaf0; -webkit-text-stroke: 6px #3a2a2a; paint-order: stroke fill; }
+.lbl { font-size: 40px; color: #5a3e2e; text-shadow: none; text-align: center; width: 240px; margin-left: -120px; }
+#title-card { position: absolute; inset: 0; display: none; }
+#tc-bg { position: absolute; inset: 0; background: linear-gradient(180deg, #e9b98a 0%, #f2d9b8 38%, #f5ecdf 70%); }
+#tc-title { position: absolute; left: 0; width: 1920px; top: 330px; text-align: center; font-family: "ZenOld", serif; font-weight: 700;
+  font-size: 150px; color: #4a3024; letter-spacing: .06em; }
+#tc-title span { display: inline-block; }
+#tc-rule { position: absolute; left: 610px; width: 700px; top: 575px; height: 2px; background: #8a6246; transform-origin: 50% 50%; }
+#tc-ep { position: absolute; left: 0; width: 1920px; top: 615px; text-align: center; font-family: "Klee"; font-weight: 600; font-size: 58px; color: #6a4630; letter-spacing: .2em; }
+#tc-soon { position: absolute; left: 0; width: 1920px; top: 745px; text-align: center; font-family: "ZenOld"; font-weight: 700; font-size: 30px; color: #9a7456; letter-spacing: .8em; }
+#tc-mark { position: absolute; left: 930px; top: 210px; width: 60px; height: 60px; }
+#paper, #grade, #vig, #bars, #fade { position: absolute; inset: 0; pointer-events: none; }
+#grade { background: radial-gradient(ellipse at 70% 20%, rgba(255,190,110,.28), transparent 60%); mix-blend-mode: soft-light; }
+#paper { opacity: .22; mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.6' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .55 0 0 0 0 .45 0 0 0 0 .35 0 0 0 .9 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+#vig { background: radial-gradient(ellipse at 50% 50%, transparent 58%, rgba(40,20,10,.45) 100%); }
+#bars::before, #bars::after { content: ""; position: absolute; left: 0; right: 0; height: 64px; background: #0c0806; }
+#bars::before { top: 0; } #bars::after { bottom: 0; }
+#fade { background: #0c0806; opacity: 1; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="cam">
+    <canvas id="bg" width="1920" height="1080"></canvas>
+    <img class="sp" id="f_sad" src="assets/f_sad.png">
+    <img class="sp" id="f_happy" src="assets/f_happy.png">
+    <img class="sp" id="f_bottle" src="assets/f_bottle.png">
+    <img class="sp" id="m_face_big" src="assets/m_face_big.png">
+    <img class="sp" id="box_closed" src="assets/box_closed.png">
+    <img class="sp" id="box_open" src="assets/box_open.png">
+    <img class="sp" id="m_tease" src="assets/m_tease.png">
+    <img class="sp" id="bottle_cloud" src="assets/bottle_cloud.png" style="-webkit-mask-image: radial-gradient(ellipse 50% 50% at 50% 52%, #000 70%, transparent 100%); mask-image: radial-gradient(ellipse 50% 50% at 50% 52%, #000 70%, transparent 100%);">
+    <img class="sp" id="m_front" src="assets/m_front.png">
+    <img class="sp" id="f_front" src="assets/f_front.png">
+    <img class="sp" id="m_wet" src="assets/m_wet.png">
+    <img class="sp" id="m_gentle" src="assets/m_gentle.png">
+    <img class="sp" id="m_back" src="assets/m_back.png">
+  <div id="title-card">
+      <div id="tc-bg"></div>
+      <svg id="tc-mark" viewBox="-30 -30 60 60"><g fill="#c98a4e"><path d="M0-26C6-12 6-6 0 0-6-6-6-12 0-26Z"/><path d="M0-26C6-12 6-6 0 0-6-6-6-12 0-26Z" transform="rotate(72)"/><path d="M0-26C6-12 6-6 0 0-6-6-6-12 0-26Z" transform="rotate(144)"/><path d="M0-26C6-12 6-6 0 0-6-6-6-12 0-26Z" transform="rotate(216)"/><path d="M0-26C6-12 6-6 0 0-6-6-6-12 0-26Z" transform="rotate(288)"/></g></svg>
+      <div id="tc-title"></div>
+      <div id="tc-rule"></div>
+      <div id="tc-ep">第一話「ひとさじの雨」</div>
+      <div id="tc-soon">COMING SOON</div>
+    </div>
+    <canvas id="fx" width="1920" height="1080"></canvas>
+    <img class="sp" id="f_surprise" src="assets/f_surprise.png">
+    <div class="txt lbl" id="l1">くも</div>
+    <div class="txt lbl" id="l2">ゆうぐれ</div>
+    <div class="txt lbl" id="l3">ゆき</div>
+    <div class="txt" id="onoma">ぽんっ</div>
+  </div>
+  <div class="txt" id="narr"></div>
+  <div class="txt" id="sub"></div>
+  <div id="grade"></div>
+  <div id="paper"></div>
+  <div id="vig"></div>
+  <div id="bars"></div>
+  <div id="fade"></div>
+</div>
+
+<script>
+// =====================================================================
+//  『夕暮れの、ふしぎ売り』 30s trailer. render(t) paints frame t from
+//  scratch (deterministic), so frames can be captured in any order.
+// =====================================================================
+const W = 1920, H = 1080;
+const $ = (s) => document.querySelector(s);
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const P = (t, a, b) => clamp((t - a) / (b - a));
+const lerp = (a, b, k) => a + (b - a) * k;
+const E = {
+  outCubic: (x) => 1 - Math.pow(1 - x, 3),
+  inOutCubic: (x) => (x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2),
+  inOutSine: (x) => -(Math.cos(Math.PI * x) - 1) / 2,
+  outBack: (x, s = 1.70158) => 1 + (s + 1) * Math.pow(x - 1, 3) + s * Math.pow(x - 1, 2),
+  outElastic: (x) => x === 0 ? 0 : x === 1 ? 1 : Math.pow(2, -10 * x) * Math.sin((x * 10 - .75) * (2 * Math.PI) / 3) + 1,
+  outExpo: (x) => (x === 1 ? 1 : 1 - Math.pow(2, -10 * x)),
+  inCubic: (x) => x * x * x,
+};
+function rng(seed) { return () => ((seed = (seed * 16807) % 2147483647) - 1) / 2147483646; }
+
+const bg = $("#bg").getContext("2d"), fx = $("#fx").getContext("2d");
+
+// ---------- sprites ----------
+const SPR = {};
+document.querySelectorAll(".sp").forEach((el) => (SPR[el.id] = el));
+function hideAll() { Object.values(SPR).forEach((el) => (el.style.display = "none")); }
+// place sprite: centre (x,y), displayed height h, rotation deg, opacity, extra css transform
+function put(id, x, y, h, rot = 0, op = 1, extra = "") {
+  const el = SPR[id]; const r = el.naturalWidth / el.naturalHeight;
+  const w = h * r;
+  el.style.display = "block"; el.style.width = w + "px"; el.style.height = h + "px";
+  el.style.opacity = op;
+  el.style.transform = `translate(${x - w / 2}px, ${y - h / 2}px) rotate(${rot}deg) ${extra}`;
+}
+
+// ---------- text ----------
+const SUBS = [], NARRS = [];
+function subtitle(text, t, t0, t1, cps = 14) { SUBS.push([text, t0, t1, cps]); }
+function narration(text, t, t0, t1) { NARRS.push([text, t0, t1]); }
+function drawSub(text, t, t0, t1, cps) {
+  const el = $("#sub");
+  if (el.dataset.text !== text) { el.dataset.text = text; el.innerHTML = [...text].map((c) => `<span>${c}</span>`).join(""); }
+  const out = P(t, t1 - .3, t1);
+  [...el.children].forEach((s, i) => { s.style.opacity = clamp((t - t0) * cps - i) * (1 - out); });
+}
+function drawNarr(text, t, t0, t1) {
+  const el = $("#narr");
+  el.textContent = text;
+  el.style.opacity = P(t, t0, t0 + .6) * (1 - P(t, t1 - .6, t1));
+  el.style.transform = `translateY(${(1 - E.outCubic(P(t, t0, t0 + 1))) * 20}px)`;
+}
+
+// ---------- painted backgrounds ----------
+function sky(ctx, dark = 0, sunX = 1450, sunY = 330) {
+  const g = ctx.createLinearGradient(0, 0, 0, H);
+  g.addColorStop(0, mix("#5b4a6e", "#2c2a3a", dark));
+  g.addColorStop(.45, mix("#e39a62", "#7a6a70", dark));
+  g.addColorStop(.75, mix("#f6cf96", "#b8a79c", dark));
+  g.addColorStop(1, mix("#f7dfb6", "#c9bbb0", dark));
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  const sg = ctx.createRadialGradient(sunX, sunY, 0, sunX, sunY, 520);
+  sg.addColorStop(0, `rgba(255,236,190,${.95 * (1 - dark)})`);
+  sg.addColorStop(.18, `rgba(255,205,140,${.55 * (1 - dark)})`);
+  sg.addColorStop(1, "rgba(255,180,120,0)");
+  ctx.fillStyle = sg; ctx.fillRect(0, 0, W, H);
+  // soft watercolour cloud streaks
+  const r = rng(5);
+  for (let i = 0; i < 7; i++) {
+    const y = 120 + r() * 300, x = r() * W, w = 300 + r() * 500;
+    ctx.fillStyle = `rgba(255,${190 + r() * 40},${160 + r() * 40},${.18 * (1 - dark)})`;
+    ctx.beginPath(); ctx.ellipse(x, y, w, 18 + r() * 20, 0, 0, 6.283); ctx.fill();
+  }
+}
+function mix(a, b, k) {
+  const pa = [1, 3, 5].map((i) => parseInt(a.substr(i, 2), 16)), pb = [1, 3, 5].map((i) => parseInt(b.substr(i, 2), 16));
+  return `rgb(${pa.map((v, i) => Math.round(lerp(v, pb[i], k))).join(",")})`;
+}
+// rows of machiya rooftops, parallax by layer
+function rooftops(ctx, pan, t, dark = 0, groundY = 820) {
+  const layers = [
+    { seed: 3, y: groundY - 330, col: "#b7806a", a: .55, par: .3, hMin: 120, hMax: 220 },
+    { seed: 9, y: groundY - 250, col: "#7d5250", a: .8, par: .6, hMin: 160, hMax: 280 },
+    { seed: 21, y: groundY - 170, col: "#4d3340", a: .95, par: 1, hMin: 200, hMax: 320 },
+  ];
+  layers.forEach((L, li) => {
+    const r = rng(L.seed);
+    let x = -400 - (pan * L.par) % 1;
+    ctx.fillStyle = mix(L.col, "#2a2630", dark * .6); ctx.globalAlpha = L.a;
+    const houses = [];
+    while (x < W + 600) {
+      const w = 180 + r() * 220, h = L.hMin + r() * (L.hMax - L.hMin);
+      houses.push([x, w, h]); x += w + 10 + r() * 30;
+    }
+    ctx.globalAlpha = L.a * (li === 0 ? .7 : 1);
+    houses.forEach(([hx, w, h], hi) => {
+      ctx.fillStyle = mix(L.col, "#2a2630", dark * .6);
+      const X = hx - pan * L.par, top = L.y + (L.hMax - h) * .5;
+      ctx.fillRect(X, top, w, groundY - top);
+      // kawara roof: ridge, concave slopes, eaves overhanging both sides
+      const ridge = top - 34, eave = top + 16;
+      ctx.beginPath();
+      ctx.moveTo(X - 34, eave);
+      ctx.quadraticCurveTo(X + 6, eave - 6, X + 26, ridge);
+      ctx.lineTo(X + w - 26, ridge);
+      ctx.quadraticCurveTo(X + w - 6, eave - 6, X + w + 34, eave);
+      ctx.lineTo(X + w + 34, eave + 8); ctx.lineTo(X - 34, eave + 8); ctx.fill();
+      ctx.fillRect(X + 20, ridge - 8, w - 40, 8);
+      // lower hisashi roof on two-storey houses
+      if (h > (L.hMin + L.hMax) / 2) {
+        const hy = top + (groundY - top) * .45;
+        ctx.beginPath(); ctx.moveTo(X - 22, hy + 14); ctx.lineTo(X + 10, hy - 10); ctx.lineTo(X + w - 10, hy - 10); ctx.lineTo(X + w + 22, hy + 14); ctx.fill();
+      }
+      // warm lattice windows on the nearest row
+      if (li === 2 && hi % 3 !== 1) {
+        const wx = X + w * .18, wy = top + 50, ww = w * .5, wh = 60;
+        const glow = .55 + .2 * Math.sin(t * 2 + hi);
+        ctx.fillStyle = `rgba(255,196,120,${glow * (1 - dark * .5)})`; ctx.fillRect(wx, wy, ww, wh);
+        ctx.fillStyle = mix(L.col, "#2a2630", dark * .6);
+        for (let k2 = 1; k2 < 7; k2++) ctx.fillRect(wx + (ww * k2) / 7 - 2, wy, 4, wh);
+        ctx.fillRect(wx, wy + wh / 2 - 2, ww, 4);
+      }
+    });
+    ctx.filter = "none";
+    ctx.globalAlpha = 1;
+    // lanterns on the nearest row
+    if (li === 2) {
+      houses.forEach(([hx, w, h], i) => {
+        if (i % 2) return;
+        const X = hx - pan * L.par + w * .7, Y = L.y + 120 + (L.hMax - h) * .5;
+        const flick = .85 + .15 * Math.sin(t * 7 + i * 3);
+        const g = ctx.createRadialGradient(X, Y, 0, X, Y, 90);
+        g.addColorStop(0, `rgba(255,200,120,${.55 * flick})`); g.addColorStop(1, "rgba(255,160,90,0)");
+        ctx.fillStyle = g; ctx.fillRect(X - 90, Y - 90, 180, 180);
+        ctx.fillStyle = `rgba(255,${190 + 30 * flick},140,1)`;
+        ctx.beginPath(); ctx.ellipse(X, Y, 17, 24, 0, 0, 6.283); ctx.fill();
+        ctx.fillStyle = "#3a2420"; ctx.fillRect(X - 12, Y - 28, 24, 6); ctx.fillRect(X - 12, Y + 22, 24, 6);
+      });
+    }
+  });
+  // stone lane
+  const g = ctx.createLinearGradient(0, groundY, 0, H);
+  g.addColorStop(0, mix("#caa488", "#8d8480", dark)); g.addColorStop(1, mix("#e8c9a6", "#a39a94", dark));
+  ctx.fillStyle = g; ctx.fillRect(0, groundY, W, H - groundY);
+  ctx.strokeStyle = `rgba(120,80,60,.12)`; ctx.lineWidth = 2;
+  for (let i = -6; i < 14; i++) { ctx.beginPath(); ctx.moveTo(W / 2 + i * 60, groundY); ctx.lineTo(W / 2 + i * 260 - pan * .2, H); ctx.stroke(); }
+}
+function dust(ctx, t, a = .6) {
+  const r = rng(77);
+  for (let i = 0; i < 70; i++) {
+    const x = (r() * W + t * (10 + r() * 20)) % W, y = (r() * H - t * (8 + r() * 14) + H) % H;
+    const s = 1.5 + r() * 3, tw = .4 + .6 * Math.abs(Math.sin(t * 1.3 + i));
+    const g = ctx.createRadialGradient(x, y, 0, x, y, s * 4);
+    g.addColorStop(0, `rgba(255,230,170,${a * tw})`); g.addColorStop(1, "rgba(255,230,170,0)");
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, s * 4, 0, 6.283); ctx.fill();
+  }
+}
+
+// ---------- drawn props ----------
+function flower(ctx, x, y, s, bloom, t) {
+  // bloom 0 = wilted, 1 = open
+  const droop = 1 - bloom;
+  ctx.save(); ctx.translate(x, y); ctx.scale(s, s);
+  ctx.strokeStyle = mix("#8a8a5a", "#5e8a4a", bloom); ctx.lineWidth = 6; ctx.lineCap = "round";
+  const hx = lerp(70, 6, E.outBack(bloom)), hy = lerp(-150, -230, E.outBack(bloom));
+  ctx.beginPath(); ctx.moveTo(0, 0); ctx.quadraticCurveTo(lerp(40, 0, bloom), -170, hx, hy); ctx.stroke();
+  // leaves
+  ctx.fillStyle = mix("#9c9a6a", "#6f9c58", bloom);
+  ctx.beginPath(); ctx.ellipse(-22, -60, 30, 11, lerp(.9, -.4, bloom), 0, 6.283); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(24, -95, 28, 10, lerp(-.2, .5, bloom), 0, 6.283); ctx.fill();
+  // head
+  ctx.translate(hx, hy); ctx.rotate(lerp(1.9, 0, E.outBack(bloom)) + Math.sin(t * 1.6) * .03);
+  const n = 6, open = lerp(.35, 1, E.outElastic(bloom));
+  for (let i = 0; i < n; i++) {
+    ctx.save(); ctx.rotate((i / n) * 6.283 + bloom * .3);
+    ctx.fillStyle = mix("#b8a2a0", "#f39a86", bloom);
+    ctx.beginPath(); ctx.ellipse(0, -26 * open, 16 * lerp(.6, 1, bloom), 30 * open, 0, 0, 6.283); ctx.fill();
+    ctx.fillStyle = `rgba(255,220,200,${.5 * bloom})`;
+    ctx.beginPath(); ctx.ellipse(0, -30 * open, 7, 16 * open, 0, 0, 6.283); ctx.fill();
+    ctx.restore();
+  }
+  ctx.fillStyle = mix("#a08a60", "#f2c35a", bloom); ctx.beginPath(); ctx.arc(0, 0, 13, 0, 6.283); ctx.fill();
+  ctx.restore();
+}
+function cloud(ctx, x, y, s, t, dark = 1, puff = 1) {
+  ctx.save(); ctx.translate(x, y); ctx.scale(s * puff, s * puff);
+  const blobs = [[-70, 10, 48], [-25, -18, 60], [30, -10, 56], [72, 12, 44], [0, 20, 52], [-45, 26, 40], [45, 28, 40]];
+  const base = mix("#e9e4ec", "#4b4d60", dark), hi = mix("#ffffff", "#6c6f86", dark);
+  blobs.forEach(([bx, by, r], i) => {
+    const w = Math.sin(t * 3 + i * 1.7) * 3;
+    const g = ctx.createRadialGradient(bx - r * .3, by - r * .4, r * .2, bx, by, r + w);
+    g.addColorStop(0, hi); g.addColorStop(1, base);
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(bx, by, r + w, 0, 6.283); ctx.fill();
+  });
+  ctx.restore();
+}
+function rain(ctx, t, x0, x1, yTop, yBot, density = 1, seed = 1, alpha = .7) {
+  const r = rng(seed);
+  const n = Math.round((x1 - x0) * .35 * density);
+  ctx.strokeStyle = `rgba(200,215,235,${alpha})`; ctx.lineWidth = 2.2; ctx.lineCap = "round";
+  for (let i = 0; i < n; i++) {
+    const x = x0 + r() * (x1 - x0), sp = 1500 + r() * 700, len = 34 + r() * 30, off = r();
+    const y = yTop + ((off * (yBot - yTop) + t * sp) % (yBot - yTop));
+    ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x - 5, y + len); ctx.stroke();
+  }
+  // splashes on the ground
+  ctx.strokeStyle = `rgba(220,230,245,${alpha * .8})`; ctx.lineWidth = 2;
+  for (let i = 0; i < n * .25; i++) {
+    const x = x0 + r() * (x1 - x0), ph = (t * 3 + r()) % 1;
+    ctx.globalAlpha = 1 - ph;
+    ctx.beginPath(); ctx.ellipse(x, yBot, 6 + ph * 22, 2 + ph * 5, 0, Math.PI, 0); ctx.stroke();
+  }
+  ctx.globalAlpha = 1;
+}
+function umbrella(ctx, x, y, s, open) {
+  ctx.save(); ctx.translate(x, y); ctx.scale(s, s);
+  const w = lerp(6, 46, E.outBack(open, 2.4));
+  ctx.strokeStyle = "#5a3a2a"; ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.moveTo(0, -30); ctx.lineTo(0, 34); ctx.stroke();
+  ctx.fillStyle = "#d9624e";
+  ctx.beginPath(); ctx.moveTo(-w, 0); ctx.quadraticCurveTo(0, -46, w, 0);
+  ctx.quadraticCurveTo(0, -10, -w, 0); ctx.fill();
+  ctx.strokeStyle = "rgba(255,230,210,.8)"; ctx.lineWidth = 1.5;
+  for (let i = -3; i <= 3; i++) { ctx.beginPath(); ctx.moveTo(0, -30); ctx.lineTo(i * w / 3.4, -4); ctx.stroke(); }
+  ctx.restore();
+}
+function bottle(ctx, x, y, h, kind, t) {
+  // glass bottle, contents drawn inside a clip so they read at any size
+  const w = h * .56, neck = h * .2, bodyTop = y - h / 2 + neck + h * .07;
+  ctx.save();
+  const body = new Path2D();
+  body.moveTo(x - w * .22, y - h / 2 + neck * .9);
+  body.lineTo(x - w * .22, bodyTop);
+  body.quadraticCurveTo(x - w / 2, bodyTop + h * .02, x - w / 2, bodyTop + h * .16);
+  body.lineTo(x - w / 2, y + h / 2 - h * .06);
+  body.quadraticCurveTo(x - w / 2, y + h / 2, x - w / 2 + h * .06, y + h / 2);
+  body.lineTo(x + w / 2 - h * .06, y + h / 2);
+  body.quadraticCurveTo(x + w / 2, y + h / 2, x + w / 2, y + h / 2 - h * .06);
+  body.lineTo(x + w / 2, bodyTop + h * .16);
+  body.quadraticCurveTo(x + w / 2, bodyTop + h * .02, x + w * .22, bodyTop);
+  body.lineTo(x + w * .22, y - h / 2 + neck * .9);
+  body.closePath();
+  ctx.fillStyle = "rgba(225,238,245,.35)"; ctx.fill(body);
+  ctx.save(); ctx.clip(body);
+  const cy = y + h * .12;
+  if (kind === "cloud") {
+    ctx.fillStyle = "rgba(170,195,220,.35)"; ctx.fillRect(x - w, bodyTop, w * 2, h);
+    cloud(ctx, x + Math.sin(t * 1.4) * w * .06, cy, h * .0026, t * 1.5, .05);
+    ctx.save(); ctx.translate(x, cy); ctx.rotate(t * 2);
+    ctx.strokeStyle = "rgba(255,255,255,.7)"; ctx.lineWidth = h * .012;
+    for (let j = 0; j < 3; j++) { ctx.beginPath(); ctx.arc(0, 0, h * (.12 + j * .04), j * 2, j * 2 + 1.6); ctx.stroke(); }
+    ctx.restore();
+  } else if (kind === "dusk") {
+    const g = ctx.createLinearGradient(0, bodyTop, 0, y + h / 2);
+    g.addColorStop(0, "#6a5a86"); g.addColorStop(.45, "#f0955e"); g.addColorStop(.62, "#ffd08a"); g.addColorStop(.63, "#b8705a"); g.addColorStop(1, "#5a3a4a");
+    ctx.fillStyle = g; ctx.fillRect(x - w, bodyTop, w * 2, h);
+    const sy = cy + h * .04 + Math.sin(t) * h * .01, sr = h * .1;
+    const sg = ctx.createRadialGradient(x, sy, 0, x, sy, sr * 3);
+    sg.addColorStop(0, "rgba(255,245,210,1)"); sg.addColorStop(.3, "rgba(255,210,140,.9)"); sg.addColorStop(1, "rgba(255,180,120,0)");
+    ctx.fillStyle = sg; ctx.beginPath(); ctx.arc(x, sy, sr * 3, 0, 6.283); ctx.fill();
+  } else {
+    ctx.fillStyle = "rgba(200,220,240,.45)"; ctx.fillRect(x - w, bodyTop, w * 2, h);
+    ctx.save(); ctx.translate(x, cy); ctx.rotate(t * .4);
+    ctx.strokeStyle = "rgba(255,255,255,.95)"; ctx.lineWidth = h * .018; ctx.lineCap = "round";
+    const R = h * .17;
+    for (let a = 0; a < 6; a++) {
+      ctx.save(); ctx.rotate(a * Math.PI / 3);
+      ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, -R); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(0, -R * .55); ctx.lineTo(-R * .22, -R * .78); ctx.moveTo(0, -R * .55); ctx.lineTo(R * .22, -R * .78); ctx.stroke();
+      ctx.restore();
+    }
+    ctx.restore();
+    const r = rng(8);
+    ctx.fillStyle = "rgba(255,255,255,.9)";
+    for (let i = 0; i < 14; i++) { const px = x - w / 2 + r() * w, py = bodyTop + ((r() * h + t * h * .15) % (h * .8)); ctx.beginPath(); ctx.arc(px, py, h * .01, 0, 6.283); ctx.fill(); }
+  }
+  ctx.restore();
+  // glass highlights + outline
+  ctx.strokeStyle = "rgba(70,60,60,.75)"; ctx.lineWidth = Math.max(2, h * .008); ctx.stroke(body);
+  ctx.strokeStyle = "rgba(255,255,255,.75)"; ctx.lineWidth = h * .02; ctx.lineCap = "round";
+  ctx.beginPath(); ctx.moveTo(x - w * .36, bodyTop + h * .2); ctx.lineTo(x - w * .36, y + h * .3); ctx.stroke();
+  // cork + tag string
+  ctx.fillStyle = "#b98a58"; ctx.strokeStyle = "rgba(70,50,40,.8)"; ctx.lineWidth = Math.max(1.5, h * .006);
+  const cw = w * .5, ch = h * .12, ctop = y - h / 2 - ch * .25;
+  ctx.beginPath(); ctx.roundRect(x - cw / 2, ctop, cw, ch, h * .02); ctx.fill(); ctx.stroke();
+  ctx.strokeStyle = "#8a6a4a"; ctx.lineWidth = h * .008;
+  ctx.beginPath(); ctx.moveTo(x - w * .22, y - h / 2 + neck * .95); ctx.lineTo(x + w * .22, y - h / 2 + neck * .95); ctx.stroke();
+  ctx.restore();
+}
+function rays(ctx, x, y, t, a) {
+  if (a <= 0) return;
+  ctx.save(); ctx.translate(x, y); ctx.globalCompositeOperation = "lighter";
+  for (let i = 0; i < 14; i++) {
+    const ang = -Math.PI / 2 + (i - 6.5) * .16 + Math.sin(t * .8 + i) * .02;
+    const len = 700 + (i % 3) * 160;
+    ctx.rotate(0);
+    const g = ctx.createLinearGradient(0, 0, Math.cos(ang) * len, Math.sin(ang) * len);
+    g.addColorStop(0, `rgba(255,220,150,${.35 * a})`); g.addColorStop(1, "rgba(255,200,120,0)");
+    ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(0, 0);
+    ctx.lineTo(Math.cos(ang - .05) * len, Math.sin(ang - .05) * len);
+    ctx.lineTo(Math.cos(ang + .05) * len, Math.sin(ang + .05) * len); ctx.fill();
+  }
+  ctx.restore();
+}
+function sparkles(ctx, x, y, t, t0, n = 16, rad = 220, col = "255,236,180") {
+  const d = t - t0; if (d < 0 || d > 1.6) return;
+  const r = rng(Math.round(t0 * 100));
+  for (let i = 0; i < n; i++) {
+    const a = r() * 6.283, dist = rad * E.outCubic(clamp(d / 1.2)) * (.4 + r() * .6);
+    const px = x + Math.cos(a) * dist, py = y + Math.sin(a) * dist - d * 40;
+    const s = (3 + r() * 5) * (1 - d / 1.6);
+    ctx.fillStyle = `rgba(${col},${1 - d / 1.6})`;
+    ctx.beginPath(); ctx.moveTo(px, py - s * 2); ctx.lineTo(px + s * .5, py); ctx.lineTo(px, py + s * 2); ctx.lineTo(px - s * .5, py); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(px - s * 2, py); ctx.lineTo(px, py + s * .5); ctx.lineTo(px + s * 2, py); ctx.lineTo(px, py - s * .5); ctx.fill();
+  }
+}
+function motionLines(ctx, x, y, t, a) {
+  if (a <= 0) return;
+  ctx.strokeStyle = `rgba(60,40,30,${.55 * a})`; ctx.lineWidth = 4; ctx.lineCap = "round";
+  [[-1, -.6], [-1.1, -.1], [-1, .4]].forEach(([dx, dy], i) => {
+    const r = 120 + i * 20;
+    ctx.beginPath(); ctx.moveTo(x + dx * r, y + dy * r); ctx.lineTo(x + dx * (r + 60), y + dy * (r + 60)); ctx.stroke();
+  });
+}
+
+// ---------- title ----------
+$("#tc-title").innerHTML = [..."夕暮れの、ふしぎ売り"].map((c) => `<span>${c}</span>`).join("");
+
+// =====================================================================
+function render(t) {
+  hideAll();
+  bg.clearRect(0, 0, W, H); fx.clearRect(0, 0, W, H);
+  $("#onoma").style.display = "none";
+  ["#l1", "#l2", "#l3"].forEach((id) => ($(id).style.display = "none"));
+  $("#title-card").style.display = "none";
+  let camS = 1, camX = 0, camY = 0, camR = 0, fade = 0;
+
+  // ---- S1 alley (0–3.2) ----
+  if (t < 3.2) {
+    const k = P(t, 0, 3.2);
+    sky(bg); rooftops(bg, lerp(0, 260, E.inOutSine(k)), t);
+    dust(fx, t, .7);
+    camS = lerp(1.08, 1.0, E.inOutSine(k));
+    fade = 1 - P(t, 0, 1.0) + P(t, 2.9, 3.2) * .6;
+  }
+  narration("夕暮れの路地に、", t, .7, 3.0);
+
+  // ---- S2 fox & wilted flower (3.2–6.0) ----
+  if (t >= 3.2 && t < 6.0) {
+    const k = P(t, 3.2, 6.0);
+    sky(bg, 0, 1500, 260); rooftops(bg, 500, t, 0, 700);
+    bg.fillStyle = "rgba(255,210,160,.25)"; bg.fillRect(0, 0, W, H);
+    flower(fx, 1200, 960, 2.3, 0, t);
+    const bob = Math.sin(t * 2.2) * 5;
+    put("f_sad", 780, 700 + bob, 520, Math.sin(t * 1.3) * 1.2);
+    camS = lerp(1.0, 1.12, E.inOutSine(k)); camX = lerp(0, -60, k);
+    fade = (1 - P(t, 3.2, 3.6)) * .6;
+    dust(fx, t, .4);
+  }
+  narration("しおれた花と、ちいさな狐。", t, 3.6, 5.9);
+
+  // ---- S3 he leans in (6.0–9.0) ----
+  if (t >= 6.0 && t < 9.0) {
+    const k = P(t, 6.0, 9.0);
+    sky(bg, 0, 520, 240); rooftops(bg, 900, t, 0, 900);
+    bg.fillStyle = "rgba(255,220,170,.35)"; bg.fillRect(0, 0, W, H);
+    const inK = E.outCubic(P(t, 6.0, 6.8));
+    // gentle breathing + a slow "look down" tilt stands in for the head turn
+    put("m_face_big", lerp(1700, 1180, inK), 560 + Math.sin(t * 1.8) * 4, 1000, lerp(8, 0, inK) + Math.sin(t * 1.1) * .6, 1,
+      `scale(${1 + Math.sin(t * 1.8) * .006})`);
+    put("f_sad", 420, 870, 300, -3, lerp(0, 1, P(t, 6.3, 6.8)));
+    camS = lerp(1.0, 1.06, E.inOutSine(k));
+    dust(fx, t, .5);
+  }
+  subtitle("……おや。喉、からからだね", t, 6.5, 8.9, 11);
+
+  // ---- S4 box opens (9.0–12.2) ----
+  if (t >= 9.0 && t < 12.2) {
+    const k = P(t, 9.0, 12.2);
+    bg.fillStyle = "#3a2a2a"; bg.fillRect(0, 0, W, H);
+    const g = bg.createRadialGradient(960, 620, 0, 960, 620, 900);
+    g.addColorStop(0, "#c98a5a"); g.addColorStop(1, "#2a1c1c"); bg.fillStyle = g; bg.fillRect(0, 0, W, H);
+    const opened = t >= 9.7;
+    const push = E.inOutCubic(P(t, 9.7, 11.0));
+    if (!opened) put("box_closed", 960, 600 + Math.sin(t * 20) * P(t, 9.4, 9.7) * 4, 620);
+    else put("box_open", 960, lerp(620, 720, push), lerp(620, 900, push));
+    rays(fx, 960, lerp(560, 600, push), t, P(t, 9.7, 10.0) * (1 - P(t, 11.6, 12.2) * .5));
+    sparkles(fx, 960, 560, t, 9.72, 26, 380);
+    if (t >= 9.7 && t < 9.78) fade = -.6; // white pop handled below
+    // push in on the three bottles, each lights up in turn with its name
+    ["cloud", "dusk", "snow"].forEach((kind, i) => {
+      const on = P(t, 10.6 + i * .35, 10.9 + i * .35);
+      if (on <= 0) return;
+      const bx = 960 + (i - 1) * 205 * (820 / 620) * .82, by = 800;
+      const g2 = fx.createRadialGradient(bx, by, 0, bx, by, 170);
+      g2.addColorStop(0, `rgba(255,230,170,${.35 * on})`); g2.addColorStop(1, "rgba(255,230,170,0)");
+      fx.fillStyle = g2; fx.beginPath(); fx.arc(bx, by, 170, 0, 6.283); fx.fill();
+      sparkles(fx, bx, by - 40, t, 10.6 + i * .35, 10, 120);
+      const lab = $(`#l${i + 1}`); lab.style.display = "block";
+      lab.style.left = bx + "px"; lab.style.top = "300px"; lab.style.opacity = on;
+      lab.style.fontSize = "56px"; lab.style.color = "#fff3dc"; lab.style.textShadow = "0 2px 12px rgba(40,20,10,.95)";
+      lab.style.transform = `translateY(${(1 - E.outCubic(on)) * 16}px)`;
+    });
+    camS = lerp(1.0, 1.05, k);
+  }
+
+  // ---- S5 one drop (12.2–14.2) ----
+  if (t >= 12.2 && t < 14.2) {
+    const k = P(t, 12.2, 14.2);
+    sky(bg, 0, 1500, 300); rooftops(bg, 1300, t, 0, 880);
+    bg.fillStyle = "rgba(255,215,165,.35)"; bg.fillRect(0, 0, W, H);
+    put("m_tease", 1080, 560 + Math.sin(t * 2) * 3, 900, lerp(3, 0, E.outCubic(P(t, 12.2, 12.8))));
+    put("bottle_cloud", 470, 600 + Math.sin(t * 2.4) * 10, 560, -6 + Math.sin(t * 1.7) * 3, E.outCubic(P(t, 12.3, 12.7)));
+    sparkles(fx, 470, 560, t, 12.5, 14, 200);
+    camS = lerp(1.02, 1.08, E.inOutSine(k));
+  }
+  subtitle("これ、一滴でいいから", t, 12.4, 14.1, 12);
+
+  // ---- S6 fox flips the bottle (14.2–16.4) ----
+  if (t >= 14.2 && t < 16.4) {
+    sky(bg, P(t, 15.4, 16.4) * .45, 1450, 300); rooftops(bg, 1500, t, P(t, 15.4, 16.4) * .45, 900);
+    const flip = E.outBack(P(t, 14.9, 15.15), 3);
+    put("f_bottle", 900, 640, 700, lerp(0, -38, flip), 1, `translateX(${flip * -40}px)`);
+    motionLines(fx, 1020, 420, t, P(t, 14.9, 15.0) * (1 - P(t, 15.3, 15.6)));
+    // the cloud puffs out of the bottle and bolts upward
+    const pop = P(t, 15.25, 15.6);
+    if (pop > 0) {
+      const up = E.inCubic(P(t, 15.7, 16.3));
+      cloud(fx, lerp(1040, 1060, pop), lerp(430, -300, up) - pop * 120, .9, t, lerp(.2, 1, pop), E.outElastic(pop));
+    }
+    if (t >= 15.3 && t < 16.2) {
+      const o = $("#onoma"); o.style.display = "block";
+      const s = E.outBack(P(t, 15.3, 15.5), 3);
+      o.style.left = "1180px"; o.style.top = "180px"; o.style.opacity = 1 - P(t, 15.9, 16.2);
+      o.style.transform = `scale(${s}) rotate(-8deg)`;
+    }
+    const sh = Math.max(0, 1 - Math.abs(t - 15.3) / .2) * 10;
+    camX = Math.sin(t * 90) * sh; camY = Math.cos(t * 80) * sh;
+  }
+
+  // ---- S7a downpour, wide (16.4–18.2) ----
+  if (t >= 16.4 && t < 18.2) {
+    const k = P(t, 16.4, 18.2);
+    sky(bg, 0, 1500, 280); rooftops(bg, 1600, t, 0, 860);
+    put("m_front", 960, 560, 640);
+    put("f_front", 1320, 820, 170, 0, 1);
+    const drop = E.outBack(P(t, 16.4, 16.7), 2);
+    cloud(fx, 960, lerp(-100, 150, drop), .9, t, 1);
+    if (t > 16.55) rain(fx, t, 860, 1060, 190, 880, 2.2, 3, .85);
+    camS = lerp(1.0, 1.04, k);
+  }
+  // ---- S7b wet close-up (18.2–20.6) ----
+  if (t >= 18.2 && t < 20.6) {
+    sky(bg, .55, 1500, 280);
+    bg.fillStyle = "rgba(60,60,80,.35)"; bg.fillRect(0, 0, W, H);
+    put("m_wet", 960, 560, 920, 0, 1, `scale(${lerp(1, 1.05, P(t, 18.2, 20.6))})`);
+    rain(fx, t, 380, 1540, 64, 1016, 1.6, 7, .55);
+    // drops sliding down the frame
+    const r = rng(4);
+    for (let i = 0; i < 10; i++) {
+      const x = 500 + r() * 900, y0 = 200 + r() * 400, ph = ((t * .35 + r()) % 1);
+      fx.fillStyle = "rgba(230,240,255,.55)";
+      fx.beginPath(); fx.ellipse(x, y0 + ph * 380, 5, 9, 0, 0, 6.283); fx.fill();
+    }
+    // comic inset: the fox, caught
+    const ins = E.outBack(P(t, 19.7, 19.95), 2.2);
+    if (ins > 0) {
+      fx.save(); fx.translate(1600, 780); fx.rotate(.05); fx.scale(ins, ins);
+      fx.fillStyle = "#f6eadb"; fx.strokeStyle = "#3a2a24"; fx.lineWidth = 6;
+      fx.fillRect(-170, -150, 340, 300); fx.strokeRect(-170, -150, 340, 300); fx.restore();
+      put("f_surprise", 1600, 790, 290 * ins, 3);
+    }
+  }
+  subtitle("……気前がいいね、きみ", t, 18.5, 20.5, 10);
+
+  // ---- S8 bloom + gentle smile (20.6–23.0) ----
+  if (t >= 20.6 && t < 21.9) {
+    sky(bg, 0, 1500, 260); rooftops(bg, 500, t, 0, 700);
+    bg.fillStyle = "rgba(255,210,160,.25)"; bg.fillRect(0, 0, W, H);
+    const b = P(t, 20.8, 21.6);
+    flower(fx, 1080, 990, 2.6, b, t);
+    sparkles(fx, 1090, 400, t, 21.15, 26, 320);
+    put("f_happy", 620, 760 + Math.sin(t * 6) * 6, 460, 0, P(t, 21.0, 21.3));
+    camS = lerp(1.1, 1.0, E.outCubic(P(t, 20.6, 21.9)));
+  }
+  if (t >= 21.9 && t < 23.0) {
+    sky(bg, 0, 700, 300);
+    bg.fillStyle = "rgba(255,225,180,.45)"; bg.fillRect(0, 0, W, H);
+    put("m_gentle", 960, 560, 940, 0, 1, `scale(${lerp(1, 1.04, P(t, 21.9, 23))})`);
+    dust(fx, t, .8);
+    fade = (1 - P(t, 21.9, 22.2)) * .4;
+  }
+  narration("——ふしぎ、売ります。", t, 22.0, 22.95);
+
+  // ---- S9 walking off with his own weather (23.0–26.4) ----
+  if (t >= 23.0 && t < 26.4) {
+    const k = P(t, 23.0, 26.4);
+    sky(bg, 0, 1000, 330); rooftops(bg, lerp(200, 300, k), t, 0, 800);
+    const walk = E.inOutSine(k);
+    const y = lerp(700, 610, walk), h = lerp(620, 470, walk);
+    const step = Math.abs(Math.sin(t * 5.2)) * 6;
+    put("m_back", 960, y - step, h, Math.sin(t * 5.2) * .8);
+    const top = y - h / 2;
+    cloud(fx, 960 + Math.sin(t * 2) * 10, top - 70, .45, t, .9);
+    rain(fx, t, 915, 1005, top - 55, top + 60, 1.4, 11, .7);
+    const op = P(t, 24.4, 24.9);
+    if (op > 0) umbrella(fx, 1010, top + 10, 1.1, op);
+    fade = P(t, 26.0, 26.4);
+  }
+  subtitle("そっちは、売り物か", t, 24.9, 26.3, 10);
+
+  // ---- S10 title card (26.4–30) ----
+  if (t >= 26.4) {
+    $("#title-card").style.display = "block";
+    const tk = P(t, 26.6, 28.0);
+    [...$("#tc-title").children].forEach((s, i) => {
+      const c = E.outCubic(P(t, 26.6 + i * .11, 27.2 + i * .11));
+      s.style.opacity = c; s.style.transform = `translateY(${(1 - c) * 24}px)`;
+      s.style.filter = `blur(${(1 - c) * 8}px)`;
+    });
+    $("#tc-mark").style.transform = `rotate(${t * 20}deg) scale(${E.outBack(P(t, 26.5, 27.0))})`;
+    $("#tc-rule").style.transform = `scaleX(${E.inOutCubic(P(t, 27.6, 28.2))})`;
+    $("#tc-ep").style.opacity = P(t, 28.0, 28.5);
+    $("#tc-soon").style.opacity = P(t, 28.5, 29.0) * .9;
+    fade = (1 - P(t, 26.4, 26.8)) + P(t, 29.3, 30.0);
+    // light rain drifting over the title card, as the episode ends on rain
+    rain(fx, t, 0, W, 64, 1016, .25, 21, .35 * P(t, 28.4, 29));
+  }
+
+  const sub = SUBS.find(([, a, b]) => t >= a && t <= b);
+  if (sub) drawSub(sub[0], t, sub[1], sub[2], sub[3]); else { $("#sub").innerHTML = ""; $("#sub").dataset.text = ""; }
+  const nar = NARRS.find(([, a, b]) => t >= a && t <= b);
+  if (nar) drawNarr(nar[0], t, nar[1], nar[2]); else $("#narr").style.opacity = 0;
+  SUBS.length = 0; NARRS.length = 0;
+
+  $("#cam").style.transform = `translate(${camX}px, ${camY}px) scale(${camS}) rotate(${camR}deg)`;
+  const f = $("#fade");
+  if (t >= 9.7 && t < 9.9) { f.style.background = "#fff4dc"; f.style.opacity = .7 * (1 - P(t, 9.7, 9.9)); }
+  else { f.style.background = "#0c0806"; f.style.opacity = clamp(fade); }
+  $("#paper").style.backgroundPosition = `${(Math.floor(t * 12) * 97) % 400}px ${(Math.floor(t * 12) * 53) % 400}px`;
+}
+
+window.render = render;
+window.DURATION = 30;
+if (!location.search.includes("capture")) {
+  const t0 = performance.now();
+  (function loop() { render(((performance.now() - t0) / 1000) % 30); requestAnimationFrame(loop); })();
+}
+</script>
+</body>
+</html>
