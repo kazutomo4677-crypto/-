@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>夕暮れの、ふしぎ売り — Lyric Video</title>
+<style>
+@font-face { font-family: "Klee"; src: url(fonts/klee600.woff2) format("woff2"); font-weight: 600; }
+@font-face { font-family: "ZenOld"; src: url(fonts/zenold700.woff2) format("woff2"); font-weight: 700; }
+@font-face { font-family: "Cinzel"; src: url(fonts/cinzel500.woff2) format("woff2"); font-weight: 500; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { width: 1920px; height: 1080px; overflow: hidden; background: #000; }
+#stage { position: relative; width: 1920px; height: 1080px; overflow: hidden; background: #0c0b14; }
+#cam { position: absolute; inset: -40px; transform-origin: 50% 50%; }
+.pl { position: absolute; left: 40px; top: 40px; width: 1920px; height: 1080px; opacity: 0; }
+canvas { position: absolute; left: 0; top: 0; }
+#texts { position: absolute; inset: 0; }
+.ln { position: absolute; white-space: nowrap; display: none; color: #fff6e8;
+  text-shadow: 0 0 28px rgba(255,214,160,.45), 0 2px 10px rgba(20,10,30,.55); }
+.ln span { display: inline-block; will-change: transform, filter, opacity; }
+.zen { font-family: "ZenOld", serif; font-weight: 700; }
+.klee { font-family: "Klee", serif; font-weight: 600; }
+.en { font-family: "Cinzel", serif; font-weight: 500; letter-spacing: .35em; font-size: 24px; color: rgba(255,240,220,.8); text-shadow: 0 0 12px rgba(20,10,30,.6); }
+.vt { writing-mode: vertical-rl; }
+#cap { position: absolute; left: 90px; top: 70px; color: rgba(255,244,228,.85); font-family: "ZenOld"; font-size: 24px; letter-spacing: .3em; }
+#cap small { display: block; font-family: "Cinzel"; font-size: 14px; letter-spacing: .5em; margin-top: 10px; opacity: .8; }
+#cap i { display: block; width: 180px; height: 1px; background: rgba(255,244,228,.6); margin-top: 14px; transform-origin: 0 50%; }
+#grain { position: absolute; inset: 0; pointer-events: none; opacity: .14; mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+#flash { position: absolute; inset: 0; background: #fff4e4; opacity: 0; }
+#fade { position: absolute; inset: 0; background: #07060c; opacity: 1; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="cam"></div>
+  <canvas id="fx" width="1920" height="1080"></canvas>
+  <div id="texts"></div>
+  <div id="cap">夕暮れの、ふしぎ売り<small>EP.01 &nbsp;HITOSAJI NO AME</small><i></i></div>
+  <div id="grain"></div>
+  <div id="flash"></div>
+  <div id="fade"></div>
+</div>
+<script>
+// =====================================================================
+//  Lyric video, 33s @ 80 BPM (one bar = 3s). Lines land on bar lines.
+//  render(t) is deterministic for frame-by-frame capture.
+// =====================================================================
+const W = 1920, H = 1080, BAR = 3;
+const $ = (s) => document.querySelector(s);
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const P = (t, a, b) => clamp((t - a) / (b - a));
+const lerp = (a, b, k) => a + (b - a) * k;
+const E = {
+  outCubic: (x) => 1 - Math.pow(1 - x, 3),
+  inOutCubic: (x) => (x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2),
+  outExpo: (x) => (x === 1 ? 1 : 1 - Math.pow(2, -10 * x)),
+  outBack: (x, s = 1.70158) => 1 + (s + 1) * Math.pow(x - 1, 3) + s * Math.pow(x - 1, 2),
+  inOutSine: (x) => -(Math.cos(Math.PI * x) - 1) / 2,
+};
+function rng(seed) { return () => ((seed = (seed * 16807) % 2147483647) - 1) / 2147483646; }
+const fx = $("#fx").getContext("2d");
+
+// ---------- plates (sharp + defocused) ----------
+const PL = {};
+["fox", "face", "box", "tease", "flip", "front", "wet", "gentle", "happy", "back"].forEach((n) => {
+  ["_b", ""].forEach((suf) => {
+    const im = document.createElement("img"); im.className = "pl"; im.src = `plates/${n}${suf}.jpg`;
+    $("#cam").appendChild(im); PL[n + suf] = im;
+  });
+});
+// show plate `n` between t0..t1 with crossfades and a rack focus in/out
+function plate(n, t, t0, t1, { fin = .5, fout = .5, focusIn = .7, focusOut = .5, z0 = 1.0, z1 = 1.06, dx = 0 } = {}) {
+  if (t < t0 - fin || t > t1 + fout) return;
+  const vis = P(t, t0 - fin, t0) * (1 - P(t, t1, t1 + fout));
+  const focus = E.inOutCubic(P(t, t0, t0 + focusIn)) * (1 - E.inOutCubic(P(t, t1 - focusOut, t1)));
+  const k = E.inOutSine(P(t, t0 - fin, t1 + fout));
+  const tr = `translateX(${dx * k}px) scale(${lerp(z0, z1, k)})`;
+  PL[n + "_b"].style.opacity = vis; PL[n + "_b"].style.transform = tr;
+  PL[n].style.opacity = vis * focus; PL[n].style.transform = tr;
+}
+
+// ---------- lyric lines ----------
+const LN = {};
+function line(id, text, t, t0, t1, css, cls = "zen", style = "rise", stag = .07) {
+  if (!LN[id]) {
+    const el = document.createElement("div"); el.className = "ln " + cls;
+    el.innerHTML = [...text].map((c) => `<span>${c === " " ? "&nbsp;" : c}</span>`).join("");
+    Object.assign(el.style, css); $("#texts").appendChild(el); LN[id] = el;
+  }
+  const el = LN[id];
+  if (t < t0 - .1 || t > t1 + .8) { el.style.display = "none"; return; }
+  el.style.display = "block";
+  const n = el.children.length;
+  [...el.children].forEach((s, i) => {
+    const a = t0 + i * stag, k = P(t, a, a + .7), ko = P(t, t1 + i * .02, t1 + .5 + i * .02);
+    const e = E.outCubic(k);
+    let tf = "", blur = (1 - e) * 14 + ko * 10, op = clamp(k * 1.4) * (1 - ko);
+    const vert = el.classList.contains("vt");
+    if (style === "rise") tf = vert ? `translateX(${(1 - e) * -20}px) translateY(${(1 - e) * 40}px)` : `translateY(${(1 - e) * 36}px)`;
+    if (style === "spread") tf = `translateX(${(1 - e) * (i - n / 2) * -18}px) scale(${lerp(1.25, 1, e)})`;
+    if (style === "flip") { const f = E.outBack(k, 1.4); tf = `rotate(${lerp(180, 0, f)}deg) translateY(${(1 - f) * -30}px)`; blur = (1 - e) * 6 + ko * 10; }
+    if (style === "rain") { const f = E.outBack(k, 2); tf = `translateY(${(1 - f) * -260}px) scaleY(${lerp(1.6, 1, f)})`; blur = (1 - e) * 8 + ko * 10; }
+    if (style === "bloom") { const f = E.outBack(k, 2.4); tf = `scale(${f}) rotate(${(1 - f) * 25}deg)`; blur = (1 - e) * 10 + ko * 10; }
+    if (style === "drip") { tf = `translateY(${(1 - e) * -16 + Math.max(0, t - a - .8) * 6}px)`; }
+    // drift away on the way out
+    if (ko > 0) tf += ` translateY(${ko * -24}px)`;
+    s.style.opacity = op; s.style.filter = `blur(${blur.toFixed(2)}px)`; s.style.transform = tf;
+  });
+}
+function en(id, text, t, t0, t1, css) {
+  line(id, text, t, t0, t1, css, "en", "rise", .015);
+}
+
+// ---------- atmosphere ----------
+const BOKEH = (() => { const r = rng(5); return Array.from({ length: 34 }, () => ({ x: r() * W, y: r() * H, s: 14 + r() * 60, v: 6 + r() * 16, ph: r() * 6.3, hue: r() })); })();
+function bokeh(t, a, warm = 1) {
+  if (a <= 0) return;
+  fx.globalCompositeOperation = "screen";
+  BOKEH.forEach((b) => {
+    const x = (b.x + t * b.v) % (W + 200) - 100, y = b.y + Math.sin(t * .4 + b.ph) * 30;
+    const tw = .5 + .5 * Math.sin(t * .9 + b.ph * 2);
+    const c = b.hue < .6 ? (warm ? "255,196,120" : "150,180,255") : (warm ? "255,150,140" : "190,170,255");
+    const g = fx.createRadialGradient(x, y, 0, x, y, b.s);
+    g.addColorStop(0, `rgba(${c},${.28 * a * tw})`); g.addColorStop(.7, `rgba(${c},${.16 * a * tw})`); g.addColorStop(1, `rgba(${c},0)`);
+    fx.fillStyle = g; fx.beginPath(); fx.arc(x, y, b.s, 0, 6.283); fx.fill();
+  });
+  fx.globalCompositeOperation = "source-over";
+}
+function leak(t, x, y, r, col, a) {
+  if (a <= 0) return;
+  fx.globalCompositeOperation = "screen";
+  const g = fx.createRadialGradient(x, y, 0, x, y, r);
+  g.addColorStop(0, `rgba(${col},${a})`); g.addColorStop(1, `rgba(${col},0)`);
+  fx.fillStyle = g; fx.fillRect(0, 0, W, H);
+  fx.globalCompositeOperation = "source-over";
+}
+function rain(t, a, x0 = 0, x1 = W, n = 160, seed = 3) {
+  if (a <= 0) return;
+  const r = rng(seed); fx.lineCap = "round";
+  for (let i = 0; i < n; i++) {
+    const x = x0 + r() * (x1 - x0), v = 1500 + r() * 900, len = 40 + r() * 60, off = r(), z = r();
+    const y = ((off * (H + 200) + t * v * (.6 + z * .6)) % (H + 200)) - 100;
+    fx.strokeStyle = `rgba(210,225,255,${a * (.15 + z * .45)})`; fx.lineWidth = .8 + z * 1.8;
+    fx.beginPath(); fx.moveTo(x, y); fx.lineTo(x - 6, y + len * (.6 + z)); fx.stroke();
+  }
+}
+function petals(t, t0, a) {
+  const d = t - t0; if (d < 0 || a <= 0) return;
+  const r = rng(31);
+  for (let i = 0; i < 46; i++) {
+    const ang = r() * 6.283, sp = 120 + r() * 420, rot = r() * 6.28, sz = 8 + r() * 14;
+    const x = 960 + Math.cos(ang) * sp * E.outCubic(clamp(d / 2)) + Math.sin(t * 1.3 + i) * 20;
+    const y = 560 + Math.sin(ang) * sp * .6 * E.outCubic(clamp(d / 2)) + d * 40 * (0.5 + r());
+    fx.save(); fx.translate(x, y); fx.rotate(rot + t * (1 + r())); fx.globalAlpha = a * clamp(1 - d / 5) * (.5 + r() * .5);
+    fx.fillStyle = i % 3 ? "#f6b3a4" : "#ffd9a0";
+    fx.beginPath(); fx.ellipse(0, 0, sz, sz * .55, 0, 0, 6.283); fx.fill(); fx.restore();
+  }
+  fx.globalAlpha = 1;
+}
+function leader(x0, y0, x1, y1, k, col = "rgba(255,240,220,.85)") {
+  if (k <= 0) return;
+  const mx = x0, my = y1;
+  const L1 = Math.abs(y1 - y0), L2 = Math.abs(x1 - mx), tot = L1 + L2, d = tot * k;
+  fx.strokeStyle = col; fx.lineWidth = 1.5; fx.beginPath(); fx.moveTo(x0, y0);
+  if (d <= L1) fx.lineTo(x0, y0 + Math.sign(y1 - y0) * d);
+  else { fx.lineTo(mx, my); fx.lineTo(mx + Math.sign(x1 - mx) * (d - L1), my); }
+  fx.stroke();
+  fx.fillStyle = col; fx.beginPath(); fx.arc(x0, y0, 5, 0, 6.283); fx.fill();
+  fx.strokeStyle = col; fx.beginPath(); fx.arc(x0, y0, 5 + 10 * E.outCubic(clamp(k * 1.5)), 0, 6.283); fx.stroke();
+}
+
+// =====================================================================
+function render(t) {
+  fx.clearRect(0, 0, W, H);
+  Object.values(PL).forEach((im) => (im.style.opacity = 0));
+  let flash = 0;
+
+  // ---- plates on the bar grid ----
+  plate("back", t, 0.2, 6.0, { fin: .8, focusIn: 2.6, z0: 1.12, z1: 1.02 });
+  plate("fox", t, 6.0, 9.0, { dx: -30 });
+  plate("face", t, 9.0, 12.0, { z0: 1.0, z1: 1.08, dx: 20 });
+  plate("box", t, 12.0, 15.0, { z0: 1.04, z1: 1.12 });
+  plate("tease", t, 15.0, 16.5, { fin: .25, fout: .15, focusIn: .3, focusOut: .2, z1: 1.04 });
+  plate("flip", t, 16.5, 18.0, { fin: .15, fout: .3, focusIn: .3, focusOut: .3, z0: 1.02, z1: 1.1 });
+  plate("front", t, 18.0, 21.0, { z0: 1.1, z1: 1.0 });
+  plate("wet", t, 21.0, 24.0, { z0: 1.0, z1: 1.1 });
+  plate("happy", t, 24.0, 25.5, { fout: .4, z1: 1.05, dx: 20 });
+  plate("gentle", t, 25.5, 27.2, { fin: .4, focusIn: .5, z0: 1.02, z1: 1.08 });
+  plate("back", t, 27.2, 33, { fin: .6, focusIn: 99, z0: 1.15, z1: 1.2 });
+
+  // ---- atmosphere per section ----
+  const warm = t < 18 || t > 24;
+  bokeh(t, t < 18 ? .9 : t < 24 ? .5 : 1, warm);
+  leak(t, lerp(1700, 1300, P(t, 0, 12)), 180, 900, "255,170,110", t < 18 ? .22 : t > 24 ? .3 : 0);
+  leak(t, 300 + Math.sin(t * .3) * 80, 900, 700, "255,120,140", t < 18 ? .1 : t > 24 ? .14 : 0);
+  if (t > 12.3 && t < 15.2) leak(t, 1180, 560, 520, "255,220,150", .35 * P(t, 12.3, 13) * (1 - P(t, 14.6, 15.2)));
+  rain(t, P(t, 18.0, 18.3) * (1 - P(t, 23.6, 24.2)) * .9, 0, W, 180, 3);
+  rain(t, P(t, 30.2, 31) * .35, 0, W, 60, 9);
+  petals(t, 25.3, 1);
+
+  // ---- caption ----
+  $("#cap").style.opacity = P(t, .8, 1.6) * (1 - P(t, 26.8, 27.3));
+  $("#cap i").style.transform = `scaleX(${E.outExpo(P(t, 1.0, 1.8))})`;
+
+  // ---- intro (0–3) ----
+  en("e0", "THE TWILIGHT PEDDLER OF WONDERS", t, 1.0, 2.5, { left: "0px", width: "1920px", textAlign: "center", top: "520px", fontSize: "26px" });
+
+  // ---- L1 · 夕暮れの路地で (3–6) ----
+  line("l1", "夕暮れの路地で", t, 3.0, 5.6, { left: "380px", top: "150px", fontSize: "104px", letterSpacing: ".14em" }, "zen vt", "rise", .1);
+  en("e1", "IN AN ALLEY, AT DUSK", t, 3.6, 5.6, { left: "560px", top: "860px" });
+
+  // ---- L2 · しおれた花が / 空を待っていた (6–9) ----
+  line("l2a", "しおれた花が", t, 6.1, 8.6, { left: "150px", top: "300px", fontSize: "112px", letterSpacing: ".08em" }, "zen", "rise", .07);
+  line("l2b", "空を待っていた", t, 6.9, 8.65, { left: "330px", top: "460px", fontSize: "112px", letterSpacing: ".08em" }, "zen", "rise", .07);
+  en("e2", "A WILTED FLOWER, WAITING FOR THE SKY", t, 7.4, 8.7, { left: "334px", top: "640px" });
+
+  // ---- L3 · ……おや。 喉、からからだね (9–12) ----
+  line("l3a", "……おや。", t, 9.1, 11.6, { left: "150px", top: "300px", fontSize: "170px" }, "zen", "spread", .08);
+  line("l3b", "「喉、からからだね」", t, 10.0, 11.65, { left: "170px", top: "560px", fontSize: "76px", letterSpacing: ".06em" }, "klee", "rise", .06);
+  en("e3", "OH MY. YOU MUST BE THIRSTY.", t, 10.4, 11.7, { left: "180px", top: "700px" });
+
+  // ---- L4 · 木箱の中には 空がある + callouts (12–15) ----
+  line("l4a", "木箱の中には", t, 12.1, 14.6, { left: "150px", top: "230px", fontSize: "104px" }, "zen", "rise", .07);
+  line("l4b", "空がある", t, 12.8, 14.65, { left: "150px", top: "380px", fontSize: "150px", color: "#ffe2b6" }, "zen", "spread", .1);
+  const bottles = [[916, 640, "雲", "KUMO"], [1180, 640, "夕焼け", "YUUYAKE"], [1424, 640, "雪", "YUKI"]];
+  bottles.forEach(([bx, by, jp, e], i) => {
+    const a = 13.0 + i * .375, k = E.inOutCubic(P(t, a, a + .6)) * (1 - P(t, 14.6, 15));
+    const lx = bx + (i - 1) * 60, ly = 150 + i * 0;
+    leader(bx, by - 120, lx, ly + 60, k);
+    line("c" + i, jp, t, a + .35, 14.6, { left: lx - 10 + "px", top: ly - 20 + "px", fontSize: "52px" }, "zen", "rise", .05);
+    en("ce" + i, e, t, a + .45, 14.6, { left: lx - 8 + "px", top: ly + 50 + "px", fontSize: "16px" });
+    if (t > a + .3 && t < a + .5) flash = Math.max(flash, .06);
+  });
+
+  // ---- L5 · これ、一滴でいいから (15–16.5) ----
+  line("l5", "「これ、一滴でいいから」", t, 15.05, 16.3, { left: "1520px", top: "150px", fontSize: "84px" }, "klee vt", "rise", .045);
+  // a single glint on the beat
+  if (t > 15.75 && t < 16.2) leak(t, 1360, 520, 160 * E.outCubic(P(t, 15.75, 15.9)), "255,255,240", .5 * (1 - P(t, 15.9, 16.2)));
+
+  // ---- L6 · ひっくり返った 空のかけら (16.5–18) ----
+  line("l6a", "ひっくり返った", t, 16.55, 17.8, { left: "140px", top: "250px", fontSize: "116px" }, "zen", "flip", .05);
+  line("l6b", "空のかけら", t, 16.95, 17.85, { left: "180px", top: "420px", fontSize: "116px", color: "#bcd0f0" }, "zen", "flip", .05);
+  if (t >= 17.25 && t < 17.35) flash = .5 * (1 - P(t, 17.25, 17.35));
+
+  // ---- L7 · ぼくの上だけ 雨が降る (18–21) ----
+  line("l7a", "ぼくの上だけ", t, 18.4, 20.6, { left: "1390px", top: "140px", fontSize: "118px", color: "#dfe8ff" }, "zen vt", "rain", .09);
+  line("l7b", "雨が降る", t, 19.2, 20.65, { left: "1240px", top: "260px", fontSize: "118px", color: "#dfe8ff" }, "zen vt", "rain", .11);
+  en("e7", "RAIN, ONLY ON ME", t, 19.6, 20.7, { left: "360px", top: "900px", color: "rgba(220,230,255,.8)" });
+
+  // ---- L8 · ……気前がいいね、きみ (21–24) ----
+  line("l8", "「……気前がいいね、きみ」", t, 21.3, 23.6, { left: "140px", top: "430px", fontSize: "84px", color: "#e8eeff" }, "klee", "drip", .07);
+  en("e8", "HOW GENEROUS OF YOU.", t, 22.3, 23.65, { left: "150px", top: "580px", color: "rgba(220,230,255,.8)" });
+
+  // ---- L9 · それでも 花は、ひらいた (24–27) ----
+  line("l9a", "それでも", t, 24.2, 26.7, { left: "980px", top: "250px", fontSize: "100px" }, "zen", "rise", .1);
+  line("l9b", "花は、ひらいた", t, 25.3, 26.75, { left: "140px", top: "700px", fontSize: "132px", color: "#ffe6c4" }, "zen", "bloom", .09);
+  en("e9", "AND STILL, THE FLOWER BLOOMED", t, 25.9, 26.8, { left: "150px", top: "880px" });
+
+  // ---- TITLE (27–33) ----
+  line("tt", "夕暮れの、ふしぎ売り", t, 27.6, 32.4, { left: "0px", width: "1920px", textAlign: "center", top: "400px", fontSize: "128px", letterSpacing: ".1em" }, "zen", "spread", .09);
+  en("te", "THE TWILIGHT PEDDLER OF WONDERS", t, 28.8, 32.4, { left: "0px", width: "1920px", textAlign: "center", top: "590px", fontSize: "22px" });
+  line("tep", "第一話「ひとさじの雨」", t, 29.4, 32.4, { left: "0px", width: "1920px", textAlign: "center", top: "660px", fontSize: "52px", letterSpacing: ".18em" }, "klee", "rise", .04);
+  en("tc", "COMING SOON", t, 30.2, 32.4, { left: "0px", width: "1920px", textAlign: "center", top: "780px", fontSize: "18px" });
+  if (t > 28.2) leak(t, 960, 470, 700, "255,190,120", .25 * P(t, 28.2, 29));
+
+  // camera breathing
+  const sway = Math.sin(t * .5) * 6;
+  $("#cam").style.transform = `translate(${sway}px, ${Math.cos(t * .37) * 4}px)`;
+  $("#flash").style.opacity = flash;
+  $("#fade").style.opacity = 1 - P(t, 0, .8) + P(t, 32.2, 33);
+  $("#grain").style.backgroundPosition = `${(Math.floor(t * 24) * 73) % 300}px ${(Math.floor(t * 24) * 131) % 300}px`;
+}
+window.render = render;
+window.DURATION = 33;
+if (!location.search.includes("capture")) {
+  const t0 = performance.now();
+  (function loop() { render(((performance.now() - t0) / 1000) % 33); requestAnimationFrame(loop); })();
+}
+</script>
+</body>
+</html>

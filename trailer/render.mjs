@@ -19,9 +19,10 @@ await page.evaluate(async () => {
   await Promise.all([...document.images].map((i) => i.decode()));
 });
 
+const duration = await page.evaluate(() => window.DURATION || 30);
 const times = timesArg
   ? timesArg.split(",").map(Number)
-  : Array.from({ length: Math.round(30 * fps) * sub }, (_, i) => i / (fps * sub));
+  : Array.from({ length: Math.round(duration * fps) * sub }, (_, i) => i / (fps * sub));
 
 let n = 0;
 for (const t of times) {
