@@ -48,7 +48,9 @@ html, body { width: 1080px; height: 1920px; overflow: hidden; background: #000; 
 #s3-face { left: 0; top: 0; width: 1080px; height: 1920px; }
 #s3-big { left: 0; top: 620px; font-size: 330px; white-space: nowrap; color: transparent; -webkit-text-stroke: 5px var(--gold-l); font-weight: 900; letter-spacing: .02em; }
 #s3-big2 { left: 0; top: 1060px; font-size: 330px; white-space: nowrap; color: var(--crimson); font-weight: 900; mix-blend-mode: multiply; }
-#s3-vert { right: 90px; top: 360px; writing-mode: vertical-rl; font-size: 92px; color: var(--ink); letter-spacing: .12em; }
+#s3-band { right: 58px; top: 300px; width: 200px; height: 1170px; background: rgba(7,8,15,.9);
+  box-shadow: 0 30px 80px rgba(0,0,0,.55), inset 0 0 0 2px var(--gold), inset 0 0 0 10px rgba(7,8,15,.9), inset 0 0 0 11px rgba(216,178,90,.6); }
+#s3-vert { right: 110px; top: 360px; writing-mode: vertical-rl; font-size: 92px; color: var(--cream); letter-spacing: .12em; text-shadow: 0 0 18px rgba(0,0,0,.6); }
 #s3-vert span { display: inline-block; }
 .wipe { left: -660px; top: -340px; width: 2400px; height: 2600px; transform-origin: 50% 50%; }
 
@@ -130,6 +132,7 @@ html, body { width: 1080px; height: 1920px; overflow: hidden; background: #000; 
       <div class="abs img" id="s3-face"></div>
       <div class="abs cinzel" id="s3-big">GRACE GRACE GRACE</div>
       <div class="abs cinzel" id="s3-big2">FORTUNE FORTUNE</div>
+      <div class="abs" id="s3-band"></div>
       <div class="abs mincho" id="s3-vert"></div>
       <div class="abs wipe" id="w3" style="background:var(--gold)"></div>
       <div class="abs wipe" id="w2" style="background:var(--indigo)"></div>
@@ -418,6 +421,8 @@ function render(t) {
     tf($("#s3-big2"), `translateX(${lerp(-1500, 100, k)}px)`);
     $("#s3-big").style.opacity = P(t, 3.3, 3.6);
     $("#s3-big2").style.opacity = P(t, 3.4, 3.7) * .9;
+    const band = E.inOutExpo(P(t, 3.35, 3.65));
+    $("#s3-band").style.clipPath = `inset(0 0 ${(1 - band) * 100}% 0)`;
     $$("#s3-vert span").forEach((sp, i) => {
       const c = E.outBack(P(t, 3.55 + i * .07, 3.85 + i * .07));
       sp.style.opacity = clamp(c);
