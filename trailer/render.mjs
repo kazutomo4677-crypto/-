@@ -13,7 +13,7 @@ fs.mkdirSync(outDir, { recursive: true });
 const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: 1920, height: 1080 }, deviceScaleFactor: 1 });
 page.on("pageerror", (e) => console.error("pageerror", e.message));
-await page.goto("http://localhost:8777/index.html?capture");
+await page.goto(`http://localhost:8777/${process.env.PAGE || "index.html"}?capture`);
 await page.evaluate(async () => {
   await document.fonts.ready;
   await Promise.all([...document.images].map((i) => i.decode()));

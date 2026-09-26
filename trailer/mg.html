@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>夕暮れの、ふしぎ売り — Motion Graphics</title>
+<style>
+@font-face { font-family: "Klee"; src: url(fonts/klee600.woff2) format("woff2"); font-weight: 600; }
+@font-face { font-family: "ZenOld"; src: url(fonts/zenold700.woff2) format("woff2"); font-weight: 700; }
+:root { --paper: #f4ecdf; --dusk: #e8955a; --gold: #d9a441; --navy: #2f3e5c; --ink: #4a3024; --rain: #9fb4cf; --rose: #e98a7a; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { width: 1920px; height: 1080px; overflow: hidden; background: #000; }
+#stage { position: relative; width: 1920px; height: 1080px; overflow: hidden; background: var(--paper); }
+#cam { position: absolute; inset: 0; transform-origin: 50% 50%; }
+canvas { position: absolute; left: 0; top: 0; }
+.sp { position: absolute; left: 0; top: 0; transform-origin: 50% 50%; display: none; }
+.t { position: absolute; white-space: nowrap; display: none; }
+.t span { display: inline-block; }
+.zen { font-family: "ZenOld", serif; font-weight: 700; }
+.klee { font-family: "Klee", serif; font-weight: 600; }
+#paper { position: absolute; inset: 0; pointer-events: none; opacity: .18; mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.6' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .55 0 0 0 0 .45 0 0 0 0 .35 0 0 0 .9 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+#flash { position: absolute; inset: 0; background: #fff8ea; opacity: 0; pointer-events: none; }
+#fade { position: absolute; inset: 0; background: #1a120e; opacity: 0; pointer-events: none; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="cam">
+    <canvas id="bg" width="1920" height="1080"></canvas>
+    <img class="sp" id="f_sad" src="assets/f_sad.png">
+    <img class="sp" id="f_happy" src="assets/f_happy.png">
+    <img class="sp" id="f_bottle" src="assets/f_bottle.png">
+    <img class="sp" id="f_surprise" src="assets/f_surprise.png">
+    <img class="sp" id="f_front" src="assets/f_front.png">
+    <img class="sp" id="m_face_big" src="assets/m_face_big.png">
+    <img class="sp" id="m_tease" src="assets/m_tease.png">
+    <img class="sp" id="m_front" src="assets/m_front.png">
+    <img class="sp" id="m_wet" src="assets/m_wet.png">
+    <img class="sp" id="m_gentle" src="assets/m_gentle.png">
+    <img class="sp" id="m_back" src="assets/m_back.png">
+    <img class="sp" id="box_open" src="assets/box_open.png">
+    <img class="sp" id="bx0" src="assets/box_open.png">
+    <img class="sp" id="bx1" src="assets/box_open.png">
+    <img class="sp" id="bx2" src="assets/box_open.png">
+    <canvas id="fx" width="1920" height="1080"></canvas>
+    <div id="texts"></div>
+  </div>
+  <div id="paper"></div>
+  <div id="flash"></div>
+  <div id="fade"></div>
+</div>
+
+<script>
+// =====================================================================
+//  『夕暮れの、ふしぎ売り』 motion-graphics trailer, 30s @ 100 BPM.
+//  render(t) is deterministic; every cut and hit sits on the beat grid.
+// =====================================================================
+const W = 1920, H = 1080, B = 0.6;
+const C = { paper: "#f4ecdf", dusk: "#e8955a", gold: "#d9a441", navy: "#2f3e5c", ink: "#4a3024", rain: "#9fb4cf", rose: "#e98a7a", cream: "#fbf6ee", plum: "#6b4a6e" };
+const $ = (s) => document.querySelector(s);
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const P = (t, a, b) => clamp((t - a) / (b - a));
+const lerp = (a, b, k) => a + (b - a) * k;
+const E = {
+  outCubic: (x) => 1 - Math.pow(1 - x, 3),
+  inCubic: (x) => x * x * x,
+  inOutCubic: (x) => (x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2),
+  outExpo: (x) => (x === 1 ? 1 : 1 - Math.pow(2, -10 * x)),
+  inExpo: (x) => (x === 0 ? 0 : Math.pow(2, 10 * x - 10)),
+  inOutExpo: (x) => x === 0 ? 0 : x === 1 ? 1 : x < .5 ? Math.pow(2, 20 * x - 10) / 2 : (2 - Math.pow(2, -20 * x + 10)) / 2,
+  outBack: (x, s = 1.70158) => 1 + (s + 1) * Math.pow(x - 1, 3) + s * Math.pow(x - 1, 2),
+  outElastic: (x) => x === 0 ? 0 : x === 1 ? 1 : Math.pow(2, -10 * x) * Math.sin((x * 10 - .75) * (2 * Math.PI) / 3) + 1,
+};
+function rng(seed) { return () => ((seed = (seed * 16807) % 2147483647) - 1) / 2147483646; }
+const bg = $("#bg").getContext("2d"), fx = $("#fx").getContext("2d");
+
+// ---------- sprites ----------
+const SPR = {};
+document.querySelectorAll(".sp").forEach((el) => (SPR[el.id] = el));
+// centre (x,y), height h, rotation, opacity, clip-path (in sprite-local px)
+function put(id, x, y, h, rot = 0, op = 1, clip = "") {
+  const el = SPR[id], w = h * el.naturalWidth / el.naturalHeight;
+  el.style.display = "block"; el.style.width = w + "px"; el.style.height = h + "px"; el.style.opacity = op;
+  el.style.transform = `translate(${x - w / 2}px, ${y - h / 2}px) rotate(${rot}deg)`;
+  el.style.clipPath = clip; return { w, h, x0: x - w / 2, y0: y - h / 2 };
+}
+// sprite shown through a circular window centred on the stage point (cx,cy)
+function putInCircle(id, cx, cy, r, x, y, h, rot = 0) {
+  const g = put(id, x, y, h, rot);
+  SPR[id].style.clipPath = `circle(${Math.max(0, r)}px at ${cx - g.x0}px ${cy - g.y0}px)`;
+}
+function putInRect(id, rx, ry, rw, rh, x, y, h, rad = 0) {
+  const g = put(id, x, y, h);
+  SPR[id].style.clipPath = `inset(${ry - g.y0}px ${g.x0 + g.w - rx - rw}px ${g.y0 + g.h - ry - rh}px ${rx - g.x0}px round ${rad}px)`;
+}
+
+// ---------- kinetic text ----------
+const TX = {};
+function tx(id, text, cls, css) {
+  if (!TX[id]) {
+    const el = document.createElement("div"); el.className = "t " + cls; el.id = id;
+    el.innerHTML = [...text].map((c) => `<span>${c === " " ? "&nbsp;" : c}</span>`).join("");
+    Object.assign(el.style, css); $("#texts").appendChild(el); TX[id] = el;
+  }
+  const el = TX[id]; el.style.display = "block"; return [...el.children];
+}
+function hideTexts() { Object.values(TX).forEach((el) => (el.style.display = "none")); }
+// per-char rise-in with stagger; returns nothing
+function charsIn(spans, t, t0, stag = .04, dur = .45, dy = 60, out = null) {
+  spans.forEach((s, i) => {
+    const k = E.outBack(P(t, t0 + i * stag, t0 + i * stag + dur), 2);
+    const o = out ? P(t, out + i * stag * .5, out + i * stag * .5 + .25) : 0;
+    s.style.opacity = clamp(k * 1.5) * (1 - o);
+    s.style.transform = `translateY(${(1 - k) * dy - o * dy * .6}px) rotate(${(1 - clamp(k)) * 8}deg)`;
+  });
+}
+
+// ---------- drawing helpers ----------
+function circle(ctx, x, y, r, col) { if (r <= 0) return; ctx.fillStyle = col; ctx.beginPath(); ctx.arc(x, y, r, 0, 6.283); ctx.fill(); }
+function ring(ctx, x, y, r, w, col, a0 = 0, a1 = 6.283) { if (r <= 0) return; ctx.strokeStyle = col; ctx.lineWidth = w; ctx.beginPath(); ctx.arc(x, y, r, a0, a1); ctx.stroke(); }
+function ticks(ctx, x, y, r, n, len, col, rot, reveal = 1) {
+  ctx.strokeStyle = col; ctx.lineWidth = 3;
+  for (let i = 0; i < n * reveal; i++) {
+    const a = rot + (i / n) * 6.283, l = i % 5 ? len : len * 2;
+    ctx.beginPath(); ctx.moveTo(x + Math.cos(a) * r, y + Math.sin(a) * r); ctx.lineTo(x + Math.cos(a) * (r + l), y + Math.sin(a) * (r + l)); ctx.stroke();
+  }
+}
+function flatCloud(ctx, x, y, s, col) {
+  ctx.fillStyle = col;
+  [[-60, 12, 42], [-20, -16, 54], [34, -6, 48], [70, 14, 36], [0, 20, 44]].forEach(([bx, by, r]) => { ctx.beginPath(); ctx.arc(x + bx * s, y + by * s, r * s, 0, 6.283); ctx.fill(); });
+  ctx.fillRect(x - 70 * s, y + 10 * s, 140 * s, 44 * s);
+}
+function drop(ctx, x, y, s, col) {
+  ctx.fillStyle = col; ctx.beginPath(); ctx.moveTo(x, y - 40 * s);
+  ctx.bezierCurveTo(x + 8 * s, y - 20 * s, x + 26 * s, y, x + 26 * s, y + 16 * s);
+  ctx.arc(x, y + 16 * s, 26 * s, 0, Math.PI); ctx.bezierCurveTo(x - 26 * s, y, x - 8 * s, y - 20 * s, x, y - 40 * s); ctx.fill();
+}
+function rainLines(ctx, t, x0, x1, y0, y1, n, col, sp = 1800, seed = 3, len = 60) {
+  const r = rng(seed); ctx.strokeStyle = col; ctx.lineWidth = 4; ctx.lineCap = "round";
+  for (let i = 0; i < n; i++) {
+    const x = x0 + r() * (x1 - x0), v = sp * (.8 + r() * .5), off = r();
+    const y = y0 + ((off * (y1 - y0) + t * v) % (y1 - y0));
+    ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x, Math.min(y1, y + len)); ctx.stroke();
+  }
+}
+function flower(ctx, x, y, s, bloom, t, col = C.rose) {
+  ctx.save(); ctx.translate(x, y); ctx.scale(s, s);
+  const stem = E.outCubic(clamp(bloom * 2));
+  ctx.strokeStyle = C.ink; ctx.lineWidth = 5; ctx.lineCap = "round";
+  ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, -200 * stem); ctx.stroke();
+  ctx.fillStyle = "#7d9a5e";
+  const lf = E.outBack(P(bloom, .3, .6));
+  ctx.beginPath(); ctx.ellipse(-26 * lf, -80, 30 * lf, 11 * lf, -.5, 0, 6.283); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(26 * lf, -120, 28 * lf, 10 * lf, .5, 0, 6.283); ctx.fill();
+  ctx.translate(0, -200 * stem); ctx.rotate(t * .4);
+  const pk = E.outElastic(P(bloom, .45, 1));
+  for (let i = 0; i < 6; i++) {
+    ctx.save(); ctx.rotate(i * 6.283 / 6);
+    ctx.fillStyle = col; ctx.beginPath(); ctx.ellipse(0, -34 * pk, 18 * pk, 34 * pk, 0, 0, 6.283); ctx.fill(); ctx.restore();
+  }
+  circle(ctx, 0, 0, 15 * pk, C.gold);
+  ctx.restore();
+}
+function burstLines(ctx, x, y, t, t0, n, r0, r1, col, w = 5) {
+  const k = P(t, t0, t0 + .45); if (k <= 0 || k >= 1) return;
+  ctx.strokeStyle = col; ctx.lineWidth = w; ctx.lineCap = "round";
+  for (let i = 0; i < n; i++) {
+    const a = (i / n) * 6.283 + .2, a1 = lerp(r0, r1, E.outExpo(k)), a2 = lerp(r0, r1, E.outExpo(clamp(k * 1.6 - .5)));
+    ctx.beginPath(); ctx.moveTo(x + Math.cos(a) * a2, y + Math.sin(a) * a2); ctx.lineTo(x + Math.cos(a) * a1, y + Math.sin(a) * a1); ctx.stroke();
+  }
+}
+function paperBg(ctx, col) { ctx.fillStyle = col; ctx.fillRect(0, 0, W, H); }
+function dotGrid(ctx, t, col, a) {
+  ctx.fillStyle = col; ctx.globalAlpha = a;
+  for (let y = 40; y < H; y += 60) for (let x = 40 + ((y / 60) % 2) * 30; x < W; x += 60) { ctx.beginPath(); ctx.arc(x + Math.sin(t + y) * 0, y, 3, 0, 6.283); ctx.fill(); }
+  ctx.globalAlpha = 1;
+}
+
+// =====================================================================
+function render(t) {
+  Object.values(SPR).forEach((el) => (el.style.display = "none"));
+  hideTexts();
+  bg.clearRect(0, 0, W, H); fx.clearRect(0, 0, W, H);
+  let flash = 0, fade = 0, cam = { x: 0, y: 0, s: 1, r: 0 };
+
+  // ===== 1 · OPEN: line → sun (0 – 2.4) =====
+  if (t < 2.4) {
+    paperBg(bg, C.paper); dotGrid(bg, t, C.ink, .06);
+    const ln = E.outExpo(P(t, .1, .7)), col = E.inExpo(P(t, .6, .8));
+    fx.strokeStyle = C.ink; fx.lineWidth = 3;
+    fx.beginPath(); fx.moveTo(960 - 700 * ln * (1 - col), 540); fx.lineTo(960 + 700 * ln * (1 - col), 540); fx.stroke();
+    const sun = t < .8 ? 0 : E.outElastic(P(t, .8, 1.6)) * 250;
+    circle(fx, 960, 540, sun, C.dusk);
+    ring(fx, 960, 540, sun * 1.25 + 10, 3, C.ink, -1.57, -1.57 + 6.283 * E.outCubic(P(t, 1.0, 1.8)));
+    ticks(fx, 960, 540, sun * 1.25 + 24, 60, 10, C.ink, t * .3, E.outCubic(P(t, 1.1, 1.9)));
+    const s1 = tx("o_jp", "夕暮れ", "zen", { left: "1340px", top: "300px", fontSize: "120px", color: C.ink, writingMode: "vertical-rl" });
+    charsIn(s1, t, 1.2, .1, .5, -80);
+    const s2 = tx("o_en", "YUGURE NO FUSHIGI-URI", "zen", { left: "360px", top: "930px", width: "1200px", textAlign: "center", fontSize: "28px", letterSpacing: ".6em", color: C.ink });
+    s2.forEach((s, i) => { s.style.opacity = P(t, 1.4 + i * .02, 1.6 + i * .02); s.style.transform = ""; });
+    burstLines(fx, 960, 540, t, .8, 16, 270, 420, C.gold, 6);
+    // exit: sun swells to fill the frame (orange becomes next BG)
+    const ex = E.inExpo(P(t, 2.0, 2.4));
+    if (ex > 0) circle(fx, 960, 540, sun + ex * 1300, C.dusk);
+  }
+
+  // ===== 2 · FOX IN THE SUN (2.4 – 4.8) =====
+  if (t >= 2.4 && t < 4.8) {
+    paperBg(bg, C.dusk);
+    // concentric rings pulsing on the beat
+    for (let i = 0; i < 6; i++) ring(bg, 1180, 540, 180 + i * 70 + ((t - 2.4) * 60) % 70, 2, "rgba(255,240,220,.35)");
+    const ir = E.outBack(P(t, 2.4, 2.9)) * 330;
+    circle(bg, 1180, 540, ir + 14, C.paper);
+    putInCircle("f_sad", 1180, 540, ir, 1180, 600, 600, Math.sin(t * 2) * 1.5);
+    ring(fx, 1180, 540, ir + 14, 4, C.ink);
+    const l1 = tx("fox1", "しおれた花と、", "zen", { left: "150px", top: "360px", fontSize: "84px", color: C.paper });
+    const l2 = tx("fox2", "ちいさな狐。", "zen", { left: "150px", top: "480px", fontSize: "84px", color: C.ink });
+    charsIn(l1, t, 2.7, .05, .4, 70, 4.45); charsIn(l2, t, 3.3, .05, .4, 70, 4.5);
+    // wilted-flower icon under the text
+    fx.save(); fx.translate(260, 820); fx.strokeStyle = C.ink; fx.lineWidth = 5; fx.lineCap = "round";
+    const d = E.outCubic(P(t, 3.6, 4.1));
+    fx.beginPath(); fx.moveTo(0, 0); fx.quadraticCurveTo(0, -90 * d, 40 * d, -110 * d); fx.stroke();
+    circle(fx, 48 * d, -96 * d, 14 * d, C.plum); fx.restore();
+    const ex = E.inExpo(P(t, 4.5, 4.8));
+    if (ex > 0) { fx.fillStyle = C.navy; fx.fillRect(0, H * (1 - ex), W, H * ex); }
+  }
+
+  // ===== 3 · HE LEANS IN — split panels (4.8 – 7.2) =====
+  if (t >= 4.8 && t < 7.2) {
+    paperBg(bg, C.navy);
+    const cols = [C.navy, C.cream, C.dusk];
+    const pw = [520, 880, 520];
+    let x = 0;
+    pw.forEach((w, i) => {
+      const k = E.outExpo(P(t, 4.8 + i * .08, 5.4 + i * .08));
+      bg.fillStyle = cols[i]; bg.fillRect(x, i % 2 ? H * (1 - k) : 0, w, H * k); x += w;
+    });
+    const up = E.outExpo(P(t, 5.0, 5.7));
+    putInRect("m_face_big", 520, 0, 880, H, 960, lerp(1200, 560, up) + Math.sin(t * 1.6) * 5, 1000);
+    const a = tx("lean1", "……おや。", "zen", { left: "70px", top: "300px", fontSize: "92px", color: C.cream });
+    charsIn(a, t, 5.4, .06, .4, 60);
+    const b = tx("lean2", "喉、", "zen", { left: "1470px", top: "380px", fontSize: "110px", color: C.navy });
+    const c = tx("lean3", "からからだね", "klee", { left: "1470px", top: "540px", fontSize: "60px", color: C.cream });
+    charsIn(b, t, 5.9, .08, .4, 60); charsIn(c, t, 6.2, .05, .35, 40);
+    fx.fillStyle = C.navy; fx.fillRect(1470, 650, 380 * E.outExpo(P(t, 6.4, 6.9)), 6);
+  }
+
+  // ===== 4 · THE BOX — outline draws, then three bottle portholes (7.2 – 10.8) =====
+  if (t >= 7.2 && t < 10.8) {
+    paperBg(bg, C.cream); dotGrid(bg, t, C.ink, .05);
+    const draw = E.inOutCubic(P(t, 7.2, 7.9));
+    const bw = 520, bh = 360, bx = 960 - bw / 2, by = 560 - bh / 2;
+    const per = 2 * (bw + bh), len = per * draw;
+    fx.globalAlpha = 1 - P(t, 8.3, 8.6);
+    fx.strokeStyle = C.ink; fx.lineWidth = 6; fx.setLineDash([len, per]);
+    fx.strokeRect(bx, by, bw, bh); fx.setLineDash([]);
+    // handle
+    fx.beginPath(); fx.moveTo(bx + 60, by); fx.lineTo(bx + 90, by - 110 * draw); fx.lineTo(bx + bw - 90, by - 110 * draw); fx.lineTo(bx + bw - 60, by); fx.stroke();
+    fx.globalAlpha = 1;
+    // lid pops open at 8.1 with light
+    const open = E.outBack(P(t, 8.1, 8.4), 2.5);
+    if (open > 0) {
+      const g = fx.createRadialGradient(960, by, 0, 960, by, 700);
+      g.addColorStop(0, `rgba(255,214,140,${.8 * open})`); g.addColorStop(1, "rgba(255,214,140,0)");
+      fx.fillStyle = g; fx.fillRect(0, 0, W, H);
+      burstLines(fx, 960, by, t, 8.1, 20, 120, 620, C.gold, 7);
+    }
+    if (t >= 8.1 && t < 8.18) flash = .6;
+    // the real box fades in over the outline, then shrinks away
+    const real = P(t, 8.2, 8.5), away = E.inOutExpo(P(t, 8.9, 9.3));
+    if (real > 0 && away < 1) put("box_open", 960, lerp(560, 540, away), lerp(520, 100, away), 0, real * (1 - away));
+    // three portholes, each a zoomed window onto one bottle
+    const kinds = [["雲", "KUMO", C.rain], ["夕", "YUUGURE", C.dusk], ["雪", "YUKI", "#cfe0ee"]];
+    kinds.forEach(([kj, en, col], i) => {
+      const t0 = 9.0 + i * B / 2, k = E.outBack(P(t, t0, t0 + .4), 1.8);
+      if (k <= 1e-3) return;
+      const cx = 960 + (i - 1) * 520, cy = 500, r = 200 * k;
+      const big = tx("kj" + i, kj, "zen", { left: cx - 170 + "px", top: "210px", fontSize: "340px", color: col, opacity: ".35" });
+      big[0].style.transform = `scale(${k})`; big[0].style.opacity = .3;
+      circle(bg, cx, cy, r + 16, col);
+      // box_open is 1004x1027 display at h 1027; bottle centres at local x ≈ 0.18/0.5/0.8 of width, y ≈ 0.66
+      const H0 = 1500, wImg = H0 * 260 / 266, lx = [0.15, 0.46, 0.76][i] + .04;
+      putInCircle("bx" + i, cx, cy, r, cx + (0.5 - lx) * wImg, cy + (0.5 - 0.68) * H0, H0);
+      ring(fx, cx, cy, r + 16, 4, C.ink);
+      ticks(fx, cx, cy, r + 26, 36, 8, C.ink, t * (i % 2 ? -.4 : .4), k);
+      const lab = tx("en" + i, en, "zen", { left: cx - 200 + "px", width: "400px", top: "760px", textAlign: "center", fontSize: "34px", letterSpacing: ".4em", color: C.ink });
+      lab.forEach((s, j) => { s.style.opacity = P(t, t0 + .2 + j * .02, t0 + .4 + j * .02); s.style.transform = ""; });
+    });
+    const ex = E.inExpo(P(t, 10.5, 10.8));
+    if (ex > 0) circle(fx, 440, 500, ex * 2300, C.dusk);
+  }
+
+  // ===== 5 · "one drop" (10.8 – 13.2) =====
+  if (t >= 10.8 && t < 13.2) {
+    paperBg(bg, C.dusk);
+    const panel = E.outExpo(P(t, 10.8, 11.3));
+    const px = lerp(1920, 900, panel);
+    bg.fillStyle = C.cream; bg.fillRect(px, 90, 900, 900);
+    putInRect("m_tease", px, 90, 900, 900, px + 450, 560 + Math.sin(t * 2) * 4, 960, 0);
+    fx.strokeStyle = C.ink; fx.lineWidth = 5; fx.strokeRect(px, 90, 900, 900);
+    // giant 一滴 and a falling drop with ripples
+    const big = tx("itteki", "一滴", "zen", { left: "120px", top: "250px", fontSize: "300px", color: C.cream });
+    charsIn(big, t, 11.2, .12, .45, 120);
+    const fall = P(t, 11.9, 12.35);
+    if (fall > 0 && fall < 1) drop(fx, 430, lerp(120, 820, E.inCubic(fall)), 1.3, C.navy);
+    [0, .15, .3].forEach((d) => {
+      const rk = P(t, 12.35 + d, 12.95 + d);
+      if (rk > 0 && rk < 1) { fx.globalAlpha = 1 - rk; fx.strokeStyle = C.navy; fx.lineWidth = 4; fx.beginPath(); fx.ellipse(430, 850, 40 + rk * 260, 10 + rk * 60, 0, 0, 6.283); fx.stroke(); fx.globalAlpha = 1; }
+    });
+    const sub = tx("s5", "これ、一滴でいいから", "klee", { left: "120px", top: "600px", fontSize: "54px", color: C.ink });
+    sub.forEach((s, i) => { s.style.opacity = clamp((t - 11.6) * 12 - i); s.style.transform = ""; });
+  }
+
+  // ===== 6 · FLIP → ぽんっ (13.2 – 15.6) =====
+  if (t >= 13.2 && t < 15.6) {
+    paperBg(bg, C.cream);
+    for (let i = 0; i < 14; i++) { bg.fillStyle = i % 2 ? "rgba(233,138,122,.12)" : "rgba(217,164,65,.10)"; bg.beginPath(); bg.moveTo(960, 540); bg.arc(960, 540, 1400, i * .449 + t * .2, (i + 1) * .449 + t * .2); bg.fill(); }
+    const flip = E.outBack(P(t, 13.8, 14.05), 3);
+    cam.r = lerp(0, -12, flip) * (1 - P(t, 14.4, 14.9));
+    const inn = E.outBack(P(t, 13.2, 13.6));
+    circle(bg, 900, 560, 330 * inn, C.paper);
+    putInCircle("f_bottle", 900, 560, 330 * inn, 900, 590, 640, lerp(0, -40, flip));
+    ring(fx, 900, 560, 330 * inn, 5, C.ink);
+    // speed marks on the flip
+    const sm = P(t, 13.8, 14.0) * (1 - P(t, 14.1, 14.3));
+    if (sm > 0) { fx.strokeStyle = C.ink; fx.lineWidth = 6; fx.lineCap = "round"; [[-1, -.5], [-1.1, 0], [-1, .5]].forEach(([dx, dy]) => { fx.globalAlpha = sm; fx.beginPath(); fx.moveTo(1060 + dx * -100, 320 + dy * 100); fx.lineTo(1060 + dx * -170, 320 + dy * 170); fx.stroke(); }); fx.globalAlpha = 1; }
+    // ぽんっ
+    const pon = tx("pon", "ぽんっ", "zen", { left: "1150px", top: "150px", fontSize: "230px", color: C.navy });
+    pon.forEach((s, i) => { const k = E.outElastic(P(t, 14.1 + i * .06, 14.7 + i * .06)); s.style.opacity = P(t, 14.1 + i * .06, 14.15 + i * .06); s.style.transform = `scale(${k}) rotate(${(1 - k) * -20 + (i - 1) * 6}deg)`; });
+    burstLines(fx, 1050, 330, t, 14.1, 12, 60, 260, C.navy, 6);
+    if (t >= 14.1 && t < 14.16) flash = .45;
+    // navy cloud grows from the bottle neck and swallows the frame
+    const cl = E.outBack(P(t, 14.2, 14.6)), sw = E.inExpo(P(t, 15.1, 15.6));
+    if (cl > 0) flatCloud(fx, 1040 - sw * 80, 330 + sw * 200, lerp(.2, 1.3, cl) + sw * 14, C.navy);
+    cam.s = 1 + Math.max(0, 1 - Math.abs(t - 14.1) / .15) * .04;
+  }
+
+  // ===== 7a · ONLY ON HIM (15.6 – 17.4) =====
+  if (t >= 15.6 && t < 17.4) {
+    paperBg(bg, C.dusk);
+    // everywhere else: sunset stripes; his column: navy + rain
+    for (let i = 0; i < 6; i++) { bg.fillStyle = `rgba(255,236,210,${.08 + i * .02})`; bg.fillRect(0, 700 + i * 50, W, 25); }
+    const col = E.outExpo(P(t, 15.6, 15.9));
+    bg.fillStyle = C.navy; bg.fillRect(960 - 190 * col, 0, 380 * col, H);
+    rainLines(fx, t, 780, 1140, 150, 1000, 70, "rgba(200,220,245,.9)", 2000, 5, 70);
+    put("m_front", 960, 600, 760);
+    flatCloud(fx, 960, lerp(-80, 150, E.outBack(P(t, 15.6, 15.95))), 1.5, "#1e2842");
+    const L1 = tx("only", "彼の上だけ、", "zen", { left: "140px", top: "300px", fontSize: "90px", color: C.cream });
+    const L2 = tx("dosha", "土砂降り。", "zen", { left: "1300px", top: "560px", fontSize: "120px", color: C.navy });
+    charsIn(L1, t, 15.8, .05, .35, 50); charsIn(L2, t, 16.35, .07, .3, -120);
+    // arrow pointing at him
+    const ar = E.outExpo(P(t, 16.0, 16.4));
+    fx.strokeStyle = C.cream; fx.lineWidth = 6; fx.lineCap = "round";
+    fx.beginPath(); fx.moveTo(560, 430); fx.lineTo(560 + 190 * ar, 430 + 60 * ar); fx.stroke();
+    if (ar > .9) { fx.beginPath(); fx.moveTo(750, 490); fx.lineTo(716, 462); fx.moveTo(750, 490); fx.lineTo(708, 500); fx.stroke(); }
+    if (t >= 16.35 && t < 16.41) flash = .3;
+    cam.x = Math.sin(t * 70) * Math.max(0, 1 - Math.abs(t - 16.35) / .2) * 12;
+  }
+  // ===== 7b · deadpan close-up through rain blinds (17.4 – 19.8) =====
+  if (t >= 17.4 && t < 19.8) {
+    paperBg(bg, C.navy);
+    rainLines(bg, t, 0, W, 0, H, 90, "rgba(159,180,207,.35)", 1600, 9, 90);
+    // horizontal blinds reveal the wet face
+    const n = 8;
+    for (let i = 0; i < n; i++) {
+      const k = E.outExpo(P(t, 17.4 + i * .04, 17.8 + i * .04));
+      bg.fillStyle = C.rain; bg.fillRect(560, 60 + i * 100, 800 * k, 100);
+    }
+    const rv = E.outExpo(P(t, 17.55, 18.1));
+    putInRect("m_wet", 560, 60, 800 * rv, 800, 960, 520, 900, 0);
+    rainLines(fx, t, 560, 1360, 60, 860, 40, "rgba(230,240,255,.8)", 2200, 17, 50);
+    const sub = tx("s7", "……気前がいいね、きみ", "klee", { left: "0px", width: "1920px", textAlign: "center", top: "915px", fontSize: "56px", color: C.cream, textShadow: "0 3px 12px rgba(0,0,0,.6)" });
+    sub.forEach((s, i) => { s.style.opacity = clamp((t - 17.9) * 10 - i); s.style.transform = ""; });
+    // fox caught, in a porthole
+    const fk = E.outBack(P(t, 19.0, 19.3), 2.2) * (1 - P(t, 19.6, 19.8));
+    if (fk > 0) { circle(bg, 1640, 300, 170 * fk + 10, C.cream); ring(fx, 1640, 300, 170 * fk + 10, 5, C.ink); }
+    if (fk > 0) putInCircle("f_surprise", 1640, 300, 170 * fk, 1640, 330, 380);
+    if (fk > 0) {
+      // "!" marks
+      fx.fillStyle = C.gold; fx.font = "700 90px ZenOld"; fx.fillText("!", 1790, 180 + (1 - fk) * 30);
+    }
+  }
+
+  // ===== 8 · BLOOM (19.8 – 22.8) =====
+  if (t >= 19.8 && t < 22.8) {
+    paperBg(bg, C.cream);
+    const b = P(t, 19.9, 20.9);
+    // radial petals burst behind
+    for (let i = 0; i < 24; i++) {
+      const k = E.outExpo(P(t, 20.3 + (i % 6) * .03, 21.0 + (i % 6) * .03));
+      const a = i / 24 * 6.283 + t * .15;
+      bg.fillStyle = i % 2 ? "rgba(233,138,122,.25)" : "rgba(217,164,65,.22)";
+      bg.save(); bg.translate(700, 520); bg.rotate(a); bg.beginPath(); bg.ellipse(0, -300 * k, 30 * k, 120 * k, 0, 0, 6.283); bg.fill(); bg.restore();
+    }
+    [0, .2, .4].forEach((d) => { const rk = P(t, 20.4 + d, 21.4 + d); if (rk > 0 && rk < 1) ring(fx, 700, 520, rk * 520, 4 * (1 - rk) + 1, C.gold); });
+    flower(fx, 700, 900, 1.9, b, t);
+    const fk = E.outBack(P(t, 20.6, 20.95));
+    if (fk > 0) circle(bg, 330, 780, 160 * fk + 8, C.dusk);
+    if (fk > 0) putInCircle("f_happy", 330, 780, 160 * fk, 330, 800, 330);
+    // gentle smile in a big gold-ringed porthole
+    const mk = E.outExpo(P(t, 21.2, 21.7));
+    if (mk > 0) circle(bg, 1360, 520, 380 * mk + 18, C.gold);
+    if (mk > 0) putInCircle("m_gentle", 1360, 520, 380 * mk, 1360, 560, 880);
+    if (mk > 0) ring(fx, 1360, 520, 380 * mk + 18, 4, C.ink);
+    const tag = tx("tag", "ふしぎ、売ります。", "zen", { left: "1080px", top: "930px", fontSize: "64px", color: C.ink });
+    charsIn(tag, t, 21.9, .05, .35, 40);
+  }
+
+  // ===== 9 · HIS OWN WEATHER (22.8 – 25.8) =====
+  if (t >= 22.8 && t < 25.8) {
+    paperBg(bg, C.dusk);
+    const hor = 700;
+    bg.fillStyle = "#f2b27c"; bg.fillRect(0, hor, W, H - hor);
+    circle(bg, 960, hor, 260, "#f7cf9a");
+    const k = P(t, 22.8, 25.8), walk = E.inOutCubic(k);
+    const y = lerp(760, 640, walk), h = lerp(560, 360, walk), step = Math.abs(Math.sin(t * 5.2)) * 5;
+    put("m_back", 960, y - step, h);
+    const top = y - h / 2;
+    flatCloud(fx, 960, top - 70, .45, C.navy);
+    rainLines(fx, t, 925, 995, top - 50, top + 70, 10, "rgba(47,62,92,.8)", 900, 13, 26);
+    // tiny umbrella pops at 24.0 and a price tag swings from it
+    const u = E.outBack(P(t, 24.0, 24.25), 3);
+    if (u > 0) {
+      fx.save(); fx.translate(1030, top + 10);
+      fx.fillStyle = C.rose; fx.beginPath(); fx.moveTo(-40 * u, 0); fx.quadraticCurveTo(0, -46 * u, 40 * u, 0); fx.quadraticCurveTo(0, -10 * u, -40 * u, 0); fx.fill();
+      fx.strokeStyle = C.ink; fx.lineWidth = 3; fx.beginPath(); fx.moveTo(0, -32 * u); fx.lineTo(0, 40); fx.stroke();
+      const sw = Math.sin((t - 24.1) * 7) * Math.exp(-(t - 24.1) * 1.5) * .6;
+      fx.rotate(sw); fx.fillStyle = C.cream; fx.strokeStyle = C.ink; fx.lineWidth = 2;
+      fx.beginPath(); fx.moveTo(0, 40); fx.lineTo(0, 60); fx.stroke();
+      fx.fillRect(-34, 60, 68, 30); fx.strokeRect(-34, 60, 68, 30);
+      fx.fillStyle = C.ink; fx.font = "700 18px ZenOld"; fx.textAlign = "center"; fx.fillText("非売品", 0, 82); fx.textAlign = "start";
+      fx.restore();
+    }
+    const q = tx("q", "そっちは、", "zen", { left: "140px", top: "260px", fontSize: "96px", color: C.cream });
+    const q2 = tx("q2", "売り物か。", "zen", { left: "1340px", top: "260px", fontSize: "96px", color: C.navy });
+    charsIn(q, t, 24.4, .06, .35, 50); charsIn(q2, t, 24.9, .06, .35, 50);
+    const ex = E.inExpo(P(t, 25.45, 25.8));
+    if (ex > 0) circle(fx, 960, 540, ex * 1150, C.paper);
+  }
+
+  // ===== 10 · TITLE (25.8 – 30) =====
+  if (t >= 25.8) {
+    paperBg(bg, C.paper); dotGrid(bg, t, C.ink, .05);
+    const s = E.outElastic(P(t, 25.8, 26.6));
+    circle(bg, 960, 330, 150 * s, C.dusk);
+    ring(fx, 960, 330, 150 * s + 26, 3, C.ink, -1.57, -1.57 + 6.283 * E.outCubic(P(t, 26.0, 26.8)));
+    ticks(fx, 960, 330, 150 * s + 38, 60, 8, C.ink, t * .2, E.outCubic(P(t, 26.1, 26.9)));
+    // horizon lines under the sun
+    for (let i = 0; i < 4; i++) { const k = E.outExpo(P(t, 26.2 + i * .06, 26.7 + i * .06)); bg.fillStyle = C.paper; bg.fillRect(960 - 170, 360 + i * 26, 340 * k, 10); }
+    const title = tx("title", "夕暮れの、ふしぎ売り", "zen", { left: "0px", width: "1920px", textAlign: "center", top: "560px", fontSize: "132px", color: C.ink, letterSpacing: ".04em" });
+    title.forEach((sp, i) => {
+      const k = E.outBack(P(t, 26.4 + i * .07, 26.9 + i * .07), 2.2);
+      sp.style.opacity = clamp(k * 2); sp.style.transform = `translateY(${(1 - k) * -120}px)`;
+    });
+    fx.fillStyle = C.ink; const rl = E.inOutExpo(P(t, 27.4, 27.9)); fx.fillRect(960 - 360 * rl, 745, 720 * rl, 3);
+    const ep = tx("ep", "第一話「ひとさじの雨」", "klee", { left: "0px", width: "1920px", textAlign: "center", top: "775px", fontSize: "54px", color: C.ink, letterSpacing: ".15em" });
+    ep.forEach((sp, i) => { sp.style.opacity = P(t, 27.8 + i * .03, 28.0 + i * .03); sp.style.transform = ""; });
+    const cs = tx("cs", "COMING SOON", "zen", { left: "0px", width: "1920px", textAlign: "center", top: "885px", fontSize: "28px", color: C.ink, letterSpacing: ".9em" });
+    cs.forEach((sp, i) => { sp.style.opacity = P(t, 28.3 + i * .03, 28.5 + i * .03) * .8; sp.style.transform = ""; });
+    // the story ends on rain
+    rainLines(fx, t, 0, W, 0, H, 50, `rgba(47,62,92,${.28 * P(t, 28.6, 29.2)})`, 1300, 23, 50);
+    fade = P(t, 29.3, 30);
+  }
+
+  $("#cam").style.transform = `translate(${cam.x}px, ${cam.y}px) scale(${cam.s}) rotate(${cam.r}deg)`;
+  $("#flash").style.opacity = flash;
+  $("#fade").style.opacity = fade;
+  $("#paper").style.backgroundPosition = `${(Math.floor(t * 12) * 97) % 400}px ${(Math.floor(t * 12) * 53) % 400}px`;
+}
+
+window.render = render;
+window.DURATION = 30;
+if (!location.search.includes("capture")) {
+  const t0 = performance.now();
+  (function loop() { render(((performance.now() - t0) / 1000) % 30); requestAnimationFrame(loop); })();
+}
+</script>
+</body>
+</html>
