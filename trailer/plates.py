@@ -20,15 +20,15 @@ W, H = 1920, 1080
 # name: sprite, centre x, centre y, height, gradient stops (top → bottom), bloom strength, mirror
 PLATES = {
     "fox": ("f_sad", 1300, 660, 960, ["#1c1f3a", "#6a4a6a", "#e59a6a", "#f6cf9a"], .45, False),
-    "face": ("m_face_big", 1240, 560, 1180, ["#1a1c36", "#5e4668", "#d98a64", "#f3c894"], .4, False),
-    "box": ("box_open", 1180, 600, 1000, ["#140f1c", "#3a2436", "#8a4a3a", "#d9955a"], .6, False),
+    "face": ("m_face_big", 1340, 560, 1180, ["#1a1c36", "#5e4668", "#d98a64", "#f3c894"], .4, False),
+    "box": ("box_open", 1270, 600, 1000, ["#140f1c", "#3a2436", "#8a4a3a", "#d9955a"], .6, False),
     "tease": ("m_tease", 700, 560, 1120, ["#1c1f3a", "#6a4a6a", "#e59a6a", "#f6cf9a"], .4, False),
     "flip": ("f_bottle", 1250, 600, 980, ["#1a1d34", "#4a3e62", "#b77a6e", "#e8b48c"], .4, False),
     "front": ("m_front", 960, 600, 1000, ["#0e1426", "#1f2a48", "#3e4a6e", "#6a6e8a"], .25, False),
     "wet": ("m_wet", 1180, 560, 1160, ["#0c1222", "#1c2744", "#34426a", "#58648a"], .25, False),
     "gentle": ("m_gentle", 1220, 560, 1180, ["#2a2340", "#8a5a6a", "#f0a870", "#fbe0ae"], .55, False),
     "happy": ("f_happy", 560, 740, 820, ["#2a2340", "#8a5a6a", "#f0a870", "#fbe0ae"], .5, False),
-    "back": ("m_back", 960, 640, 820, ["#1a1c36", "#6a4a6a", "#e59a6a", "#f8d7a4"], .35, False),
+    "back": ("m_back", 960, 620, 860, ["#1a1c36", "#6a4a6a", "#e59a6a", "#f8d7a4"], .35, False),
 }
 
 

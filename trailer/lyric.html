@@ -194,7 +194,7 @@ function render(t) {
   leak(t, lerp(1700, 1300, P(t, 0, 12)), 180, 900, "255,170,110", t < 18 ? .22 : t > 24 ? .3 : 0);
   leak(t, 300 + Math.sin(t * .3) * 80, 900, 700, "255,120,140", t < 18 ? .1 : t > 24 ? .14 : 0);
   if (t > 12.3 && t < 15.2) leak(t, 1180, 560, 520, "255,220,150", .35 * P(t, 12.3, 13) * (1 - P(t, 14.6, 15.2)));
-  rain(t, P(t, 18.0, 18.3) * (1 - P(t, 23.6, 24.2)) * .9, 0, W, 180, 3);
+  rain(t, P(t, 18.0, 18.3) * (1 - P(t, 23.2, 23.7)) * .9, 0, W, 180, 3);
   rain(t, P(t, 30.2, 31) * .35, 0, W, 60, 9);
   petals(t, 25.3, 1);
 
@@ -203,37 +203,39 @@ function render(t) {
   $("#cap i").style.transform = `scaleX(${E.outExpo(P(t, 1.0, 1.8))})`;
 
   // ---- intro (0–3) ----
-  en("e0", "THE TWILIGHT PEDDLER OF WONDERS", t, 1.0, 2.5, { left: "0px", width: "1920px", textAlign: "center", top: "520px", fontSize: "26px" });
+  en("e0", "THE TWILIGHT PEDDLER OF WONDERS", t, 1.0, 2.5, { left: "150px", top: "900px", fontSize: "26px" });
 
   // ---- L1 · 夕暮れの路地で (3–6) ----
   line("l1", "夕暮れの路地で", t, 3.0, 5.6, { left: "380px", top: "150px", fontSize: "104px", letterSpacing: ".14em" }, "zen vt", "rise", .1);
-  en("e1", "IN AN ALLEY, AT DUSK", t, 3.6, 5.6, { left: "560px", top: "860px" });
+  en("e1", "IN AN ALLEY, AT DUSK", t, 3.6, 5.6, { left: "150px", top: "960px" });
 
   // ---- L2 · しおれた花が / 空を待っていた (6–9) ----
   line("l2a", "しおれた花が", t, 6.1, 8.6, { left: "150px", top: "300px", fontSize: "112px", letterSpacing: ".08em" }, "zen", "rise", .07);
   line("l2b", "空を待っていた", t, 6.9, 8.65, { left: "330px", top: "460px", fontSize: "112px", letterSpacing: ".08em" }, "zen", "rise", .07);
-  en("e2", "A WILTED FLOWER, WAITING FOR THE SKY", t, 7.4, 8.7, { left: "334px", top: "640px" });
+  en("e2", "A WILTED FLOWER, WAITING FOR THE SKY", t, 7.4, 8.7, { left: "154px", top: "640px", fontSize: "20px", letterSpacing: ".25em" });
 
   // ---- L3 · ……おや。 喉、からからだね (9–12) ----
   line("l3a", "……おや。", t, 9.1, 11.6, { left: "150px", top: "300px", fontSize: "170px" }, "zen", "spread", .08);
   line("l3b", "「喉、からからだね」", t, 10.0, 11.65, { left: "170px", top: "560px", fontSize: "76px", letterSpacing: ".06em" }, "klee", "rise", .06);
-  en("e3", "OH MY. YOU MUST BE THIRSTY.", t, 10.4, 11.7, { left: "180px", top: "700px" });
+  en("e3", "OH MY. YOU MUST BE THIRSTY.", t, 10.4, 11.7, { left: "160px", top: "700px", fontSize: "20px", letterSpacing: ".25em" });
 
   // ---- L4 · 木箱の中には 空がある + callouts (12–15) ----
-  line("l4a", "木箱の中には", t, 12.1, 14.6, { left: "150px", top: "230px", fontSize: "104px" }, "zen", "rise", .07);
-  line("l4b", "空がある", t, 12.8, 14.65, { left: "150px", top: "380px", fontSize: "150px", color: "#ffe2b6" }, "zen", "spread", .1);
-  const bottles = [[916, 640, "雲", "KUMO"], [1180, 640, "夕焼け", "YUUYAKE"], [1424, 640, "雪", "YUKI"]];
+  line("l4a", "木箱の中には", t, 12.1, 14.6, { left: "120px", top: "250px", fontSize: "88px" }, "zen", "rise", .07);
+  line("l4b", "空がある", t, 12.8, 14.65, { left: "120px", top: "380px", fontSize: "132px", color: "#ffe2b6" }, "zen", "spread", .1);
+  const bottles = [[1006, 640, "雲", "KUMO"], [1270, 640, "夕焼け", "YUUYAKE"], [1514, 640, "雪", "YUKI"]];
   bottles.forEach(([bx, by, jp, e], i) => {
     const a = 13.0 + i * .375, k = E.inOutCubic(P(t, a, a + .6)) * (1 - P(t, 14.6, 15));
     const lx = bx + (i - 1) * 60, ly = 150 + i * 0;
     leader(bx, by - 120, lx, ly + 60, k);
-    line("c" + i, jp, t, a + .35, 14.6, { left: lx - 10 + "px", top: ly - 20 + "px", fontSize: "52px" }, "zen", "rise", .05);
+    line("c" + i, jp, t, a + .35, 14.6, { left: lx - 22 + "px", top: ly - 26 + "px", fontSize: "52px", padding: "4px 12px", background: "rgba(20,12,24,.55)", borderRadius: "6px" }, "zen", "rise", .05);
     en("ce" + i, e, t, a + .45, 14.6, { left: lx - 8 + "px", top: ly + 50 + "px", fontSize: "16px" });
+    // the label's dark backing follows the text in and out
+    LN["c" + i].style.opacity = P(t, a + .35, a + .7) * (1 - P(t, 14.6, 15.0));
     if (t > a + .3 && t < a + .5) flash = Math.max(flash, .06);
   });
 
   // ---- L5 · これ、一滴でいいから (15–16.5) ----
-  line("l5", "「これ、一滴でいいから」", t, 15.05, 16.3, { left: "1520px", top: "150px", fontSize: "84px" }, "klee vt", "rise", .045);
+  line("l5", "「これ、一滴でいいから」", t, 15.05, 16.3, { left: "1540px", top: "110px", fontSize: "70px" }, "klee vt", "rise", .045);
   // a single glint on the beat
   if (t > 15.75 && t < 16.2) leak(t, 1360, 520, 160 * E.outCubic(P(t, 15.75, 15.9)), "255,255,240", .5 * (1 - P(t, 15.9, 16.2)));
 
@@ -248,19 +250,19 @@ function render(t) {
   en("e7", "RAIN, ONLY ON ME", t, 19.6, 20.7, { left: "360px", top: "900px", color: "rgba(220,230,255,.8)" });
 
   // ---- L8 · ……気前がいいね、きみ (21–24) ----
-  line("l8", "「……気前がいいね、きみ」", t, 21.3, 23.6, { left: "140px", top: "430px", fontSize: "84px", color: "#e8eeff" }, "klee", "drip", .07);
-  en("e8", "HOW GENEROUS OF YOU.", t, 22.3, 23.65, { left: "150px", top: "580px", color: "rgba(220,230,255,.8)" });
+  line("l8", "「……気前がいいね、きみ」", t, 21.3, 23.2, { left: "140px", top: "430px", fontSize: "84px", color: "#e8eeff" }, "klee", "drip", .07);
+  en("e8", "HOW GENEROUS OF YOU.", t, 22.3, 23.25, { left: "150px", top: "580px", color: "rgba(220,230,255,.8)" });
 
   // ---- L9 · それでも 花は、ひらいた (24–27) ----
   line("l9a", "それでも", t, 24.2, 26.7, { left: "980px", top: "250px", fontSize: "100px" }, "zen", "rise", .1);
-  line("l9b", "花は、ひらいた", t, 25.3, 26.75, { left: "140px", top: "700px", fontSize: "132px", color: "#ffe6c4" }, "zen", "bloom", .09);
-  en("e9", "AND STILL, THE FLOWER BLOOMED", t, 25.9, 26.8, { left: "150px", top: "880px" });
+  line("l9b", "花は、ひらいた", t, 25.3, 26.75, { left: "110px", top: "740px", fontSize: "98px", color: "#ffe6c4" }, "zen", "bloom", .09);
+  en("e9", "AND STILL, THE FLOWER BLOOMED", t, 25.9, 26.8, { left: "116px", top: "880px", fontSize: "20px", letterSpacing: ".25em" });
 
   // ---- TITLE (27–33) ----
   line("tt", "夕暮れの、ふしぎ売り", t, 27.6, 32.4, { left: "0px", width: "1920px", textAlign: "center", top: "400px", fontSize: "128px", letterSpacing: ".1em" }, "zen", "spread", .09);
-  en("te", "THE TWILIGHT PEDDLER OF WONDERS", t, 28.8, 32.4, { left: "0px", width: "1920px", textAlign: "center", top: "590px", fontSize: "22px" });
+  en("te", "THE TWILIGHT PEDDLER OF WONDERS", t, 28.8, 32.4, { left: "0px", width: "1920px", textAlign: "center", top: "585px", fontSize: "26px", color: "rgba(255,246,232,.95)" });
   line("tep", "第一話「ひとさじの雨」", t, 29.4, 32.4, { left: "0px", width: "1920px", textAlign: "center", top: "660px", fontSize: "52px", letterSpacing: ".18em" }, "klee", "rise", .04);
-  en("tc", "COMING SOON", t, 30.2, 32.4, { left: "0px", width: "1920px", textAlign: "center", top: "780px", fontSize: "18px" });
+  en("tc", "COMING SOON", t, 30.2, 32.4, { left: "0px", width: "1920px", textAlign: "center", top: "780px", fontSize: "22px", color: "rgba(255,246,232,.95)" });
   if (t > 28.2) leak(t, 960, 470, 700, "255,190,120", .25 * P(t, 28.2, 29));
 
   // camera breathing

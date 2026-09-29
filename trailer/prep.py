@@ -23,16 +23,17 @@ CROPS = {
     "m_surprise": ("merchant_sheet.png", (478, 688, 700, 900), 26),
     "m_wet": ("merchant_sheet.png", (705, 688, 930, 900), 26),
     "m_gentle": ("merchant_sheet.png", (930, 688, 1150, 900), 26),
-    "m_front": ("merchant_sheet.png", (240, 60, 482, 632), 22),
+    "m_front": ("merchant_sheet.png", (246, 25, 500, 632), 22),
     "box_open": ("merchant_sheet.png", (1138, 348, 1398, 614), 20),
     "box_closed": ("merchant_sheet.png", (1150, 62, 1398, 342), 20),
     # rough sketch sheet — big faces and back view
     "m_face_big": ("merchant_sketch.jpg", (60, 0, 560, 470), 22),
     "m_wink_big": ("merchant_sketch.jpg", (0, 470, 560, 1232), 22),
-    "m_back": ("merchant_sketch.jpg", (560, 0, 928, 1232), 22),
+    # back view from the clean sheet: the sketch version overlaps other drawings
+    "m_back": ("merchant_sheet.png", (845, 25, 1105, 628), 22),
     # fox sheet
     "f_front": ("fox_sheet.png", (100, 170, 450, 548), 22),
-    "f_sad": ("fox_sheet.png", (18, 690, 262, 905), 22),
+    "f_sad": ("fox_sheet.png", (18, 690, 280, 905), 22),
     "f_pout": ("fox_sheet.png", (276, 640, 472, 905), 22),
     "f_surprise": ("fox_sheet.png", (468, 660, 668, 905), 22),
     "f_happy": ("fox_sheet.png", (668, 660, 878, 905), 22),
@@ -40,6 +41,10 @@ CROPS = {
     "bottle_cloud": ("merchant_sheet.png", (1162, 450, 1236, 580), 0),
     "f_curled": ("fox_sheet.png", (1230, 660, 1525, 910), 22),
 }
+
+
+# crop-local rectangles to clear (neighbouring drawings that poke in)
+ERASE = {"f_sad": [(240, 0, 262, 110)], "m_gentle": [(0, 0, 12, 212)], "m_wet": [(0, 0, 8, 212)]}
 
 
 def cutout(img, tol, enclosed=0):
@@ -73,6 +78,12 @@ def cutout(img, tol, enclosed=0):
             if comp.sum() >= 60:
                 bg |= comp
             lab.paste(0, mask=Image.fromarray((comp * 255).astype(np.uint8)))
+    if enclosed:
+        # white fringe hugging the hair: grow the background through near-white
+        white = (rgb.min(-1) > 236) & ((rgb.max(-1) - rgb.min(-1)) < 20)
+        for _ in range(8):
+            grown = np.asarray(Image.fromarray((bg * 255).astype(np.uint8)).filter(ImageFilter.MaxFilter(5))) > 0
+            bg = bg | (grown & white)
     alpha = Image.fromarray(((~bg) * 255).astype(np.uint8))
     # close pinholes, then soften the edge a touch
     alpha = alpha.filter(ImageFilter.MaxFilter(3)).filter(ImageFilter.MinFilter(3))
@@ -90,5 +101,9 @@ if __name__ == "__main__":
         crop = cache[src].crop(box)
         enclosed = 10 if name.startswith("m_") else 0
         piece = crop.convert("RGBA") if tol == 0 else cutout(crop, tol, enclosed)
+        for (l, t, r, b) in ERASE.get(name, []):
+            a = np.asarray(piece).copy()
+            a[t:b, l:r, 3] = 0
+            piece = Image.fromarray(a)
         piece.save(OUT / f"{name}.png")
         print(name, piece.size)

@@ -276,7 +276,7 @@ L = N + len(ir_t)
 wet = np.stack([np.fft.irfft(np.fft.rfft(mix[:, c], L) * np.fft.rfft(ir[:, c], L), L)[:N] for c in range(2)], 1)
 wet /= np.abs(wet).max() + 1e-9
 out = mix / (np.abs(mix).max() + 1e-9) + wet * .22
-out = np.tanh(out * 1.2)
+out = np.tanh(out * 1.9)  # gentle saturation: lifts the average level ~4 dB
 out = out / np.abs(out).max() * .9
 
 path = sys.argv[1] if len(sys.argv) > 1 else "sound.wav"
